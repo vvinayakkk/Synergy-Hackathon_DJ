@@ -13,6 +13,12 @@ const DiscoveryPage = () => {
   const [sectorCategories, setSectorCategories] = useState([]);
   const [trendingVideo, setTrendingVideo] = useState(null);
   const [selectedSector, setSelectedSector] = useState(null);
+  const getYoutubeVideoID = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|embed\/|watch\?v=|watch\?.+&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+  
 
   // Fetch discovery data
   const fetchDiscoveryData = async () => {
@@ -83,7 +89,7 @@ const DiscoveryPage = () => {
         video: {
           id: 1,
           title: 'Market Trends',
-          url: 'video-url'
+          url: 'https://youtu.be/ZCFkWDdmXG8?si=xFXWt-mksnwdU_hB'
         }
       };
 
@@ -193,24 +199,36 @@ const DiscoveryPage = () => {
                   </div>
                 </div>
               </div>
-              {/* Video placeholder */}
+              {/* YouTube Video Integration */}
               <div className="relative" style={{ height: "250px" }}>
-                <div className={`w-full h-full rounded-lg flex items-center justify-center ${
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-                }`}>
-                  <div className="text-center">
-                    <div className="flex flex-col items-center">
-                      <svg className={`w-10 h-10 mb-2 ${
-                        theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-                      }`} viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                      <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                        Play discovery video
-                      </span>
+                {trendingVideo ? (
+                  <iframe 
+                    className="w-full h-full rounded-lg"
+                    src={`https://www.youtube.com/embed/${getYoutubeVideoID(trendingVideo.url)}`}
+                    title={trendingVideo.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                  
+                ) : (
+                  <div className={`w-full h-full rounded-lg flex items-center justify-center ${
+                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                  }`}>
+                    <div className="text-center">
+                      <div className="flex flex-col items-center">
+                        <svg className={`w-10 h-10 mb-2 ${
+                          theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                        }`} viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+                          Loading video...
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -232,13 +250,11 @@ const DiscoveryPage = () => {
                   <span className={`text-xs ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>{sector.views} views</span>
-                  {/* ...rest of sector card content... */}
                 </div>
                 <h3 className="font-bold mb-1">{sector.title}</h3>
                 <p className={`text-sm mb-2 ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>{sector.description}</p>
-                {/* ...rest of sector stats... */}
               </div>
             ))}
           </div>
@@ -261,7 +277,6 @@ const DiscoveryPage = () => {
                   ? 'bg-gray-800' 
                   : 'bg-white border border-gray-200'
               }`}>
-                {/* ...sector card content with theme-aware styling... */}
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center">
                     <svg className={`w-5 h-5 mr-2 ${
@@ -281,7 +296,6 @@ const DiscoveryPage = () => {
                 <p className={`text-sm min-h-[80px] ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>{sector.description}</p>
-                {/* ...rest of sector card content... */}
               </div>
             ))}
           </div>
