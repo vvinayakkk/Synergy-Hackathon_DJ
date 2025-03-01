@@ -1,25 +1,68 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Search, Moon } from 'lucide-react';
 
 const MarketHeader = () => {
+  const tickerRef = useRef(null);
+  
+  useEffect(() => {
+    // For continuous scrolling effect
+    const scrollTicker = () => {
+      if (tickerRef.current) {
+        if (tickerRef.current.scrollLeft >= tickerRef.current.scrollWidth / 2) {
+          tickerRef.current.scrollLeft = 0;
+        } else {
+          tickerRef.current.scrollLeft += 1;
+        }
+      }
+    };
+    
+    // Set up interval for smooth scrolling
+    const ticker = setInterval(scrollTicker, 30);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(ticker);
+  }, []);
+
+  // Creating duplicate ticker items to ensure continuous scrolling
+  const tickerItems = [
+    {symbol: "", price: "394.70", change: "1.68%", down: true},
+    {symbol: "TCS", price: "3483.90", change: "3.56%", down: true},
+    {symbol: "TITAN", price: "3087.80", change: "4.17%", down: true},
+    {symbol: "LT", price: "3164.75", change: "1.40%", down: true},
+    {symbol: "HEROMOTOCO", price: "3712.55", change: "1.24%", down: true},
+    {symbol: "EICHERMOT", price: "4794.45", change: "2.84%", down: true},
+    {symbol: "ONGC", price: "225.30", change: "2.49%", down: true},
+    {symbol: "INDUSINDBK", price: "988.95", change: "5.00%", down: true},
+    {symbol: "RELIANCE", price: "2894.30", change: "1.75%", down: true},
+    {symbol: "INFY", price: "1772.65", change: "2.10%", down: true},
+    {symbol: "HDFC", price: "1633.20", change: "0.95%", down: true},
+    {symbol: "ICICI", price: "1092.40", change: "1.35%", down: true}
+  ];
+  
+  // Duplicate the array to ensure continuous scrolling
+  const allTickerItems = [...tickerItems, ...tickerItems];
+
   return (
-    <div className="w-full h-32">
-      {/* Ticker Tape */}
-      <div className="bg-black text-white text-xs py-1 px-4 overflow-hidden whitespace-nowrap">
-        <div className="flex space-x-4">
-          <span>394.70 <span className="text-red-500">▼ 1.68%</span></span>
-          <span>TCS 3483.90 <span className="text-red-500">▼ 3.56%</span></span>
-          <span>TITAN 3087.80 <span className="text-red-500">▼ 4.17%</span></span>
-          <span>LT 3164.75 <span className="text-red-500">▼ 1.40%</span></span>
-          <span>HEROMOTOCO 3712.55 <span className="text-red-500">▼ 1.24%</span></span>
-          <span>EICHERMOT 4794.45 <span className="text-red-500">▼ 2.84%</span></span>
-          <span>ONGC 225.30 <span className="text-red-500">▼ 2.49%</span></span>
-          <span>INDUSINDBK 988.95 <span className="text-red-500">▼ 5</span></span>
+    <div className="w-full">
+      {/* Ticker Tape - Full width and auto-scrolling */}
+      <div className="bg-black text-white text-xs py-1 overflow-hidden whitespace-nowrap">
+        <div 
+          ref={tickerRef}
+          className="flex whitespace-nowrap overflow-hidden"
+          style={{ width: "200%" }}
+        >
+          <div className="flex space-x-8 animate-ticker" style={{ minWidth: "100%" }}>
+            {allTickerItems.map((item, index) => (
+              <span key={index} className="whitespace-nowrap">
+                {item.symbol && `${item.symbol} `}{item.price} <span className="text-red-500">▼ {item.change}</span>
+              </span>
+            ))}
+          </div>
         </div>
       </div>
       
       {/* Navigation Bar */}
-      <div className="bg-black flex items-center justify-between px-4 py-3">
+      <div className="bg-black flex items-center justify-between px-4 py-3 flex-shrink-0">
         {/* Logo Section */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center">
@@ -85,6 +128,11 @@ const MarketHeader = () => {
             </svg>
           </div>
         </div>
+      </div>
+      
+      {/* Main Content Area - Empty to occupy remaining space */}
+      <div className="flex-1 bg-gray-900">
+        {/* This div will fill the remaining space */}
       </div>
     </div>
   );
