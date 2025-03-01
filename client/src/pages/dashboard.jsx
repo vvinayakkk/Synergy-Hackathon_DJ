@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { gsap } from 'gsap';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Camera, TrendingUp, TrendingDown, DollarSign, Send, AlertTriangle, Activity, PieChart, Globe, Search } from 'lucide-react';
 import MarketHeader from '../components/header';
+import { ThemeContext } from '../themeContext';
 
 // Sample data
 const stockData = [
@@ -51,6 +52,7 @@ const alertsData = [
 ];
 
 const Dashboard = () => {
+  const { theme } = useContext(ThemeContext);
   const globeContainerRef = useRef(null);
   const analyticsSphereRef = useRef(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -464,7 +466,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white">
+    <div className={`min-h-screen ${theme === 'dark' 
+      ? 'bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white' 
+      : 'bg-gradient-to-b from-blue-50 via-blue-100 to-white text-gray-900'}`}>
       <MarketHeader />
       
       {/* Main content */}
@@ -473,10 +477,16 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Stats cards */}
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+            <div className={`${theme === 'dark' 
+              ? 'bg-gray-900 bg-opacity-50' 
+              : 'bg-white bg-opacity-90'} backdrop-blur-md p-6 rounded-xl border ${
+              theme === 'dark' ? 'border-blue-800' : 'border-blue-200'} 
+              transform hover:scale-105 transition-transform duration-300`}>
               <div className="flex justify-between">
-                <h3 className="text-lg text-gray-300">Market Intelligence</h3>
-                <DollarSign size={20} className="text-blue-400" />
+                <h3 className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                  Market Intelligence
+                </h3>
+                <DollarSign size={20} className={theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -498,10 +508,16 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+            <div className={`${theme === 'dark' 
+              ? 'bg-gray-900 bg-opacity-50' 
+              : 'bg-white bg-opacity-90'} backdrop-blur-md p-6 rounded-xl border ${
+              theme === 'dark' ? 'border-blue-800' : 'border-blue-200'} 
+              transform hover:scale-105 transition-transform duration-300`}>
               <div className="flex justify-between">
-                <h3 className="text-lg text-gray-300">Sentiment Score</h3>
-                <Activity size={20} className="text-purple-400" />
+                <h3 className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                  Sentiment Score
+                </h3>
+                <Activity size={20} className={theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -523,10 +539,16 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+            <div className={`${theme === 'dark' 
+              ? 'bg-gray-900 bg-opacity-50' 
+              : 'bg-white bg-opacity-90'} backdrop-blur-md p-6 rounded-xl border ${
+              theme === 'dark' ? 'border-blue-800' : 'border-blue-200'} 
+              transform hover:scale-105 transition-transform duration-300`}>
               <div className="flex justify-between">
-                <h3 className="text-lg text-gray-300">Prediction Accuracy</h3>
-                <PieChart size={20} className="text-green-400" />
+                <h3 className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                  Prediction Accuracy
+                </h3>
+                <PieChart size={20} className={theme === 'dark' ? 'text-green-400' : 'text-green-600'} />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -548,10 +570,16 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+            <div className={`${theme === 'dark' 
+              ? 'bg-gray-900 bg-opacity-50' 
+              : 'bg-white bg-opacity-90'} backdrop-blur-md p-6 rounded-xl border ${
+              theme === 'dark' ? 'border-blue-800' : 'border-blue-200'} 
+              transform hover:scale-105 transition-transform duration-300`}>
               <div className="flex justify-between">
-                <h3 className="text-lg text-gray-300">Trading Signals</h3>
-                <Send size={20} className="text-yellow-400" />
+                <h3 className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-900'}`}>
+                  Trading Signals
+                </h3>
+                <Send size={20} className={theme === 'dark' ? 'text-yellow-400' : 'text-yellow-600'} />
               </div>
               <div className="mt-4 flex items-end justify-between">
                 <div>
@@ -575,7 +603,10 @@ const Dashboard = () => {
           </div>
 
           {/* 3D Globe */}
-          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md rounded-xl border border-blue-800 overflow-hidden">
+          <div className={`${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md rounded-xl border overflow-hidden`}>
             <div className="p-4 bg-black bg-opacity-40 border-b border-blue-900">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium flex items-center">
@@ -596,7 +627,10 @@ const Dashboard = () => {
         {/* Middle row - Chart and Sphere */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Main Chart */}
-          <div className="lg:col-span-2 bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800">
+          <div className={`lg:col-span-2 ${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md p-6 rounded-xl border`}>
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium">Market Performance</h3>
               <div className="flex space-x-2">
@@ -610,15 +644,14 @@ const Dashboard = () => {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={stockData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis dataKey="name" stroke="#999" />
-                  <YAxis stroke="#999" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#333' : '#e5e7eb'} />
+                  <XAxis dataKey="name" stroke={theme === 'dark' ? '#999' : '#4b5563'} />
+                  <YAxis stroke={theme === 'dark' ? '#999' : '#4b5563'} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(10, 15, 30, 0.8)', 
-                      borderColor: '#2c3e50',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)'
+                      backgroundColor: theme === 'dark' ? 'rgba(10, 15, 30, 0.8)' : 'rgba(255, 255, 255, 0.95)', 
+                      borderColor: theme === 'dark' ? '#2c3e50' : '#e5e7eb',
+                      color: theme === 'dark' ? '#fff' : '#111827'
                     }} 
                   />
                   <Line 
@@ -659,7 +692,10 @@ const Dashboard = () => {
           </div>
 
           {/* Analytics Sphere */}
-          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md rounded-xl border border-blue-800 overflow-hidden">
+          <div className={`${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md rounded-xl border overflow-hidden`}>
             <div className="p-4 bg-black bg-opacity-40 border-b border-blue-900">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium flex items-center">
@@ -680,18 +716,31 @@ const Dashboard = () => {
         {/* Bottom row - News, Alerts and Analysis */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* News */}
-          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800">
-            <h3 className="text-lg font-medium mb-4">Market News</h3>
+          <div className={`${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md p-6 rounded-xl border`}>
+            <h3 className={`text-lg font-medium mb-4 ${
+              theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              Market News
+            </h3>
             <div className="space-y-4">
               {newsData.map((news, index) => (
-                <div key={index} className="p-4 bg-black bg-opacity-30 rounded-lg border border-blue-900 hover:border-blue-600 transition-colors duration-300">
+                <div key={index} className={`p-4 ${theme === 'dark' 
+                  ? 'bg-black bg-opacity-30 border-blue-900' 
+                  : 'bg-white border-blue-200'} 
+                  rounded-lg border hover:border-blue-600 transition-colors duration-300`}>
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-white">{news.title}</h4>
+                    <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {news.title}
+                    </h4>
                     <span className={`px-2 py-1 rounded text-xs ${getImpactColor(news.impact)}`}>
                       {news.impact.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300 mb-2">{news.summary}</p>
+                  <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {news.summary}
+                  </p>
                   <p className={`text-sm ${getSentimentColor(news.sentiment)}`}>
                     Sentiment: {news.sentiment.charAt(0).toUpperCase() + news.sentiment.slice(1)}
                   </p>
@@ -704,21 +753,31 @@ const Dashboard = () => {
           </div>
 
           {/* Alerts */}
-          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800">
+          <div className={`${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md p-6 rounded-xl border`}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Real-time Alerts</h3>
+              <h3 className={`text-lg font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Real-time Alerts</h3>
               <AlertTriangle size={18} className="text-yellow-500" />
             </div>
             <div className="space-y-4">
               {alertsData.map((alert, index) => (
-                <div key={index} className="p-4 bg-black bg-opacity-30 rounded-lg border border-blue-900 hover:border-yellow-600 transition-colors duration-300">
+                <div key={index} className={`p-4 ${theme === 'dark' 
+                  ? 'bg-black bg-opacity-30 border-blue-900' 
+                  : 'bg-white border-blue-200'} 
+                  rounded-lg border hover:border-yellow-600 transition-colors duration-300`}>
                   <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-white">{alert.stock}</h4>
+                    <h4 className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {alert.stock}
+                    </h4>
                     <span className={`px-2 py-1 rounded text-xs ${getImpactColor(alert.level)}`}>
                       {alert.level.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-300">{alert.alert}</p>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {alert.alert}
+                  </p>
                 </div>
               ))}
             </div>
@@ -728,8 +787,11 @@ const Dashboard = () => {
           </div>
 
           {/* AI Analysis */}
-          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800">
-            <h3 className="text-lg font-medium mb-4">AI Market Analysis</h3>
+          <div className={`${theme === 'dark' 
+            ? 'bg-gray-900 bg-opacity-50 border-blue-800' 
+            : 'bg-white bg-opacity-70 border-blue-200'} 
+            backdrop-blur-md p-6 rounded-xl border`}>
+            <h3 className={`text-lg font-medium mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>AI Market Analysis</h3>
             
             {/* Tabs */}
             <div className="flex border-b border-blue-900 mb-4">
@@ -757,21 +819,28 @@ const Dashboard = () => {
             <div className="overflow-y-auto h-64 pr-2 custom-scrollbar">
               {activeTab === 'overview' && (
                 <div className="space-y-4">
-                  <p className="text-gray-300">
+                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
                     The market is showing <span className="text-green-400">bullish</span> trends with technology and healthcare sectors outperforming. Our AI detects increasing institutional buying pressure in semiconductor stocks with a correlation to AI-related news events.
                   </p>
-                  <div className="p-3 bg-blue-900 bg-opacity-30 rounded-lg border border-blue-800">
-                    <p className="text-sm font-medium text-blue-300">Key Insight:</p>
-                    <p className="text-sm text-gray-300">Recent volatility patterns suggest a potential market rotation toward value stocks in the next 7-10 trading days.</p>
+                  <div className={`p-3 ${theme === 'dark' 
+                    ? 'bg-blue-900 bg-opacity-30' 
+                    : 'bg-blue-50'} rounded-lg border ${
+                    theme === 'dark' ? 'border-blue-800' : 'border-blue-200'}`}>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Key Insight:</p>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Recent volatility patterns suggest a potential market rotation toward value stocks in the next 7-10 trading days.</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-black bg-opacity-30 rounded-lg">
-                      <p className="text-sm font-medium text-blue-300">Correlation Score</p>
-                      <p className="text-xl font-bold text-white">87.4%</p>
+                    <div className={`p-3 ${theme === 'dark' 
+                      ? 'bg-black bg-opacity-30' 
+                      : 'bg-blue-50'} rounded-lg`}>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Correlation Score</p>
+                      <p className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>87.4%</p>
                     </div>
-                    <div className="p-3 bg-black bg-opacity-30 rounded-lg">
-                      <p className="text-sm font-medium text-blue-300">AI Confidence</p>
-                      <p className="text-xl font-bold text-white">92.8%</p>
+                    <div className={`p-3 ${theme === 'dark' 
+                      ? 'bg-black bg-opacity-30' 
+                      : 'bg-blue-50'} rounded-lg`}>
+                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>AI Confidence</p>
+                      <p className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>92.8%</p>
                     </div>
                   </div>
                 </div>
@@ -779,20 +848,26 @@ const Dashboard = () => {
               
               {activeTab === 'prediction' && (
                 <div className="space-y-4">
-                  <p className="text-gray-300">
+                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
                     Our quantum-enhanced prediction models indicate a <span className="text-green-400">73% probability</span> of the S&P 500 reaching new highs within the next 30 trading days.
                   </p>
-                  <div className="p-3 bg-green-900 bg-opacity-30 rounded-lg border border-green-800">
-                    <p className="text-sm font-medium text-green-300">Opportunities:</p>
-                    <ul className="text-sm text-gray-300 list-disc list-inside space-y-1 mt-1">
+                  <div className={`p-3 ${theme === 'dark' 
+                    ? 'bg-green-900 bg-opacity-30' 
+                    : 'bg-green-50'} rounded-lg border ${
+                    theme === 'dark' ? 'border-green-800' : 'border-green-200'}`}>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>Opportunities:</p>
+                    <ul className={`text-sm list-disc list-inside space-y-1 mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       <li>Semiconductor sector projected to grow 12-15%</li>
                       <li>AI-related stocks showing strong momentum</li>
                       <li>Healthcare innovation catalysts emerging</li>
                     </ul>
                   </div>
-                  <div className="p-3 bg-red-900 bg-opacity-30 rounded-lg border border-red-800">
-                    <p className="text-sm font-medium text-red-300">Risk Factors:</p>
-                    <ul className="text-sm text-gray-300 list-disc list-inside space-y-1 mt-1">
+                  <div className={`p-3 ${theme === 'dark' 
+                    ? 'bg-red-900 bg-opacity-30' 
+                    : 'bg-red-50'} rounded-lg border ${
+                    theme === 'dark' ? 'border-red-800' : 'border-red-200'}`}>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>Risk Factors:</p>
+                    <ul className={`text-sm list-disc list-inside space-y-1 mt-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                       <li>Rising treasury yields may pressure growth stocks</li>
                       <li>Geopolitical tensions increasing volatility</li>
                       <li>Consumer sentiment metrics weakening</li>
@@ -803,35 +878,38 @@ const Dashboard = () => {
               
               {activeTab === 'strategy' && (
                 <div className="space-y-4">
-                  <p className="text-gray-300">
+                  <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}`}>
                     Based on current market conditions and AI analysis, our strategic recommendation leans <span className="text-blue-400">moderately bullish</span> with sector-specific focus.
                   </p>
-                  <div className="p-3 bg-purple-900 bg-opacity-30 rounded-lg border border-purple-800">
-                    <p className="text-sm font-medium text-purple-300">Recommended Allocation:</p>
+                  <div className={`p-3 ${theme === 'dark' 
+                    ? 'bg-purple-900 bg-opacity-30' 
+                    : 'bg-purple-50'} rounded-lg border ${
+                    theme === 'dark' ? 'border-purple-800' : 'border-purple-200'}`}>
+                    <p className={`text-sm font-medium ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>Recommended Allocation:</p>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Technology: 35%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Technology: 35%</p>
                       </div>
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Healthcare: 20%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Healthcare: 20%</p>
                       </div>
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Financial: 15%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Financial: 15%</p>
                       </div>
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Energy: 10%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Energy: 10%</p>
                       </div>
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Utilities: 10%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Utilities: 10%</p>
                       </div>
                       <div className="flex items-center">
                         <div className="w-3 h-3 rounded-full bg-gray-500 mr-2"></div>
-                        <p className="text-sm text-gray-300">Cash: 10%</p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Cash: 10%</p>
                       </div>
                     </div>
                   </div>
@@ -846,16 +924,22 @@ const Dashboard = () => {
       </main>
 
       {/* Footer */}
-      <footer className="py-4 px-6 bg-black bg-opacity-40 backdrop-blur-lg border-t border-blue-900 mt-6">
+      <footer className={`py-4 px-6 ${theme === 'dark' 
+        ? 'bg-black bg-opacity-40 border-blue-900' 
+        : 'bg-white border-blue-200'} 
+        backdrop-blur-lg border-t mt-6`}>
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="text-gray-400 text-sm">
+          <div className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
             © 2025 QuantumTrader AI. All market data is delayed by 15 minutes.
           </div>
           <div className="flex space-x-6 mt-3 md:mt-0">
-            <button className="text-gray-400 hover:text-blue-400 transition-colors">Terms</button>
-            <button className="text-gray-400 hover:text-blue-400 transition-colors">Privacy</button>
-            <button className="text-gray-400 hover:text-blue-400 transition-colors">Help</button>
-            <button className="text-gray-400 hover:text-blue-400 transition-colors">Support</button>
+            {['Terms', 'Privacy', 'Help', 'Support'].map((item) => (
+              <button key={item} className={`${theme === 'dark' 
+                ? 'text-gray-400 hover:text-blue-400' 
+                : 'text-gray-600 hover:text-blue-600'} transition-colors`}>
+                {item}
+              </button>
+            ))}
           </div>
         </div>
       </footer>
@@ -867,15 +951,15 @@ const Dashboard = () => {
           height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
+          background: ${theme === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.1)'};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(59, 130, 246, 0.5);
+          background: ${theme === 'dark' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(59, 130, 246, 0.3)'};
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(59, 130, 246, 0.8);
+          background: ${theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.5)'};
         }
       `}</style>
     </div>
