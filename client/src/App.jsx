@@ -11,6 +11,7 @@ import CompanyDetail from './pages/CompanyDetails'
 import StockScreener from './pages/StockScreener'
 import ScreenerResults from './pages/ScreenerResults'
 import AIChatInterface from './pages/AIChat'
+import Analysis from './pages/Analysis'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -25,6 +26,7 @@ function App() {
       <Route path="/screener" element={<StockScreener />} />
       <Route path="/screener/new-screen" element={<ScreenerResults />} />
       <Route path='/aichat' element={<AIChatInterface/>}/>
+      <Route path='/analysis' element={<Analysis/>}/>
     </Routes>
     
   )
