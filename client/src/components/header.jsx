@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { Search, Moon } from 'lucide-react';
+import React, { useContext, useEffect, useRef } from 'react';
+import { Search, Moon , Sun } from 'lucide-react';
+import { ThemeContext } from '../themeContext';
 
 const MarketHeader = () => {
   const tickerRef = useRef(null);
+  const { theme , toggleTheme } = useContext(ThemeContext);
   
   useEffect(() => {
     // For continuous scrolling effect
@@ -117,8 +119,8 @@ const MarketHeader = () => {
         {/* User Section */}
         <div className="flex items-center space-x-4">
           <span className="text-white">Pricing</span>
-          <button className="text-white">
-            <Moon className="h-5 w-5" />
+          <button onClick={toggleTheme} className="text-white">
+            {theme === 'light' ? <Sun className='h-5 w-5'/> : <Moon className="h-5 w-5" />}
           </button>
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white">V</div>
