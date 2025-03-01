@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Camera, TrendingUp, TrendingDown, DollarSign, Send, AlertTriangle, Activity, PieChart, Globe, Search } from 'lucide-react';
 import MarketHeader from '../components/header';
 import { ThemeContext } from '../themeContext';
+import Footer from '../components/footer';
 
 // Sample data
 const stockData = [
@@ -923,26 +924,7 @@ const Dashboard = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className={`py-4 px-6 ${theme === 'dark' 
-        ? 'bg-black bg-opacity-40 border-blue-900' 
-        : 'bg-white border-blue-200'} 
-        backdrop-blur-lg border-t mt-6`}>
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
-            © 2025 QuantumTrader AI. All market data is delayed by 15 minutes.
-          </div>
-          <div className="flex space-x-6 mt-3 md:mt-0">
-            {['Terms', 'Privacy', 'Help', 'Support'].map((item) => (
-              <button key={item} className={`${theme === 'dark' 
-                ? 'text-gray-400 hover:text-blue-400' 
-                : 'text-gray-600 hover:text-blue-600'} transition-colors`}>
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Custom CSS for scrollbar */}
       <style jsx>{`

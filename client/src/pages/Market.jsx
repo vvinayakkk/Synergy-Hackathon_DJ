@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import MarketHeader from '../components/header';
 import Footer from '../components/footer';
 import { ThemeContext } from '../themeContext';
+import NiftyChart from '../components/NiftyChart';
 
 const MarketDashboard = () => {
   const { theme } = useContext(ThemeContext);
@@ -169,6 +170,7 @@ const MarketDashboard = () => {
       <MarketHeader />
 
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <NiftyChart/>
         {/* NIFTY 50 Section */}
         <div className="mb-12">
           <div className="text-gray-400 mb-3">NIFTY 50</div>
