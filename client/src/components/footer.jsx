@@ -19,7 +19,7 @@ const Footer = () => {
             </svg>
             <div>
               <div className="font-bold text-lg flex items-center">
-                multibagg.ai
+                EasyFin
                 <span className={`ml-2 ${
                   theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'
                 } text-xs px-2 py-0.5 rounded`}>Beta</span>
@@ -29,7 +29,7 @@ const Footer = () => {
           <p className={`text-sm ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
           } mb-4`}>
-            Multibagg is an AI powered stock research and analysis platform. We provide data, information, content, and analytics for publicly traded Indian companies listed on NSE and BSE.
+            EasyFin is an AI powered stock research and analysis platform. We provide data, information, content, and analytics for publicly traded Indian companies listed on NSE and BSE.
           </p>
           <p className={`text-sm ${
             theme === 'dark' ? 'text-gray-500' : 'text-gray-500'
@@ -93,7 +93,7 @@ const Footer = () => {
         theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
       } border-t flex justify-between items-center`}>
         <div className={theme === 'dark' ? 'text-gray-500' : 'text-gray-600'}>
-          © 2023 Multibagg. All rights reserved.
+          © 2025 EasyFin. All rights reserved.
         </div>
         <div className="flex space-x-4">
           {['twitter', 'github', 'dribbble'].map((social) => (
