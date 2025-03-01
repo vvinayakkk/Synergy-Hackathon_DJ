@@ -4,6 +4,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { gsap } from 'gsap';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Camera, TrendingUp, TrendingDown, DollarSign, Send, AlertTriangle, Activity, PieChart, Globe, Search } from 'lucide-react';
+import axios from 'axios';
+
 import MarketHeader from '../components/header';
 import { ThemeContext } from '../themeContext';
 import Footer from '../components/footer';
@@ -11,94 +13,67 @@ import MarketSentimentSurvey from '../components/marketSurvey';
 import MarketDashboard from '../components/market';
 import MarketMovers from '../components/marketMovers';
 import RecentAISessionsComponent from '../components/Askai';
-import axios from 'axios';
-
-const newsData = [
-  {
-    title: "FED Announces Interest Rate Decision",
-    impact: "high",
-    sentiment: "neutral",
-    summary: "The Federal Reserve announced they will maintain current interest rates after reviewing economic indicators."
-  },
-  {
-    title: "Tech Sector Surges on AI Advancements",
-    impact: "medium",
-    sentiment: "positive",
-    summary: "Technology stocks are experiencing a rally following breakthroughs in artificial intelligence applications."
-  },
-  {
-    title: "Major Merger Announced in Financial Sector",
-    impact: "high",
-    sentiment: "positive",
-    summary: "Two of the largest banks announced a merger that will reshape the banking landscape."
-  },
-  {
-    title: "Supply Chain Issues Impact Manufacturing",
-    impact: "medium",
-    sentiment: "negative",
-    summary: "Ongoing supply chain disruptions continue to affect manufacturing output across multiple sectors."
-  },
-];
-
-const alertsData = [
-  { stock: "TSLA", alert: "Unusual trading volume detected", level: "high" },
-  { stock: "AAPL", alert: "Positive sentiment spike on social media", level: "medium" },
-  { stock: "AMZN", alert: "Approaching support level", level: "medium" },
-  { stock: "NVDA", alert: "Breaking resistance level", level: "high" },
-];
 
 const Dashboard = () => {
+  // State declarations
   const { theme } = useContext(ThemeContext);
   const globeContainerRef = useRef(null);
   const analyticsSphereRef = useRef(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [symbol, setSymbol] = useState('');
+  const [displayDays, setDisplayDays] = useState(30);
+  const [currentPrice, setCurrentPrice] = useState(null);
+  const [newsHeadlines, setNewsHeadlines] = useState([]);
+  const [forecast, setForecast] = useState(null);
+  const [technicalIndicators, setTechnicalIndicators] = useState(null);
+  const [stockData, setStockData] = useState([]);
+  const [timeRange, setTimeRange] = useState('ALL');
   const [animatedNumbers, setAnimatedNumbers] = useState({
     marketCap: 0,
     sentiment: 0,
     prediction: 0,
     signals: 0
   });
-  const [stockData, setStockData] = useState([]);
-  const [timeRange, setTimeRange] = useState('ALL'); // Add this new state
+
+  // Define fetchStockData before using it
+  const fetchStockData = async () => {
+    const API_KEY = 'O65HMHBW44OCOG75'; // Replace with your API key
+    const SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN'];
+    const promises = SYMBOLS.map(symbol =>
+      axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`)
+    );
+
+    try {
+      const responses = await Promise.all(promises);
+      const data = responses.map((res, index) => {
+        const symbol = SYMBOLS[index];
+        const timeSeries = res.data['Time Series (Daily)'];
+        return Object.keys(timeSeries).map(date => ({
+          date,
+          [symbol]: parseFloat(timeSeries[date]['4. close'])
+        }));
+      });
+
+      // Combine data by date
+      const combinedData = {};
+      data.forEach(stock => {
+        stock.forEach(day => {
+          if (!combinedData[day.date]) {
+            combinedData[day.date] = { date: day.date };
+          }
+          combinedData[day.date] = { ...combinedData[day.date], ...day };
+        });
+      });
+
+      const sortedData = Object.values(combinedData)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      setStockData(sortedData.slice(-30)); // Last 30 days
+    } catch (error) {
+      console.error('Error fetching stock data:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchStockData = async () => {
-      const API_KEY = 'O65HMHBW44OCOG75'; // Replace with your API key
-      const SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN'];
-      const promises = SYMBOLS.map(symbol =>
-        axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`)
-      );
-
-      try {
-        const responses = await Promise.all(promises);
-        const data = responses.map((res, index) => {
-          const symbol = SYMBOLS[index];
-          const timeSeries = res.data['Time Series (Daily)'];
-          return Object.keys(timeSeries).map(date => ({
-            date,
-            [symbol]: parseFloat(timeSeries[date]['4. close'])
-          }));
-        });
-
-        // Combine data by date
-        const combinedData = {};
-        data.forEach(stock => {
-          stock.forEach(day => {
-            if (!combinedData[day.date]) {
-              combinedData[day.date] = { date: day.date };
-            }
-            combinedData[day.date] = { ...combinedData[day.date], ...day };
-          });
-        });
-
-        const sortedData = Object.values(combinedData)
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-        setStockData(sortedData.slice(-30)); // Last 30 days
-      } catch (error) {
-        console.error('Error fetching stock data:', error);
-      }
-    };
-
     fetchStockData();
     const interval = setInterval(fetchStockData, 300000); // Update every 5 minutes
 
@@ -534,57 +509,181 @@ const Dashboard = () => {
     }
   };
 
+  // Add new helper functions
+  const fetchCurrentPrice = async () => {
+    try {
+      const response = await axios.get(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`);
+      setCurrentPrice(response.data['Global Quote']);
+    } catch (error) {
+      console.error('Error fetching current price:', error);
+    }
+  };
+
+  const fetchNewsHeadlines = async () => {
+    try {
+      const response = await axios.get(`https://www.alphavantage.co/query?function=NEWS_SENTIMENT&symbol=${symbol}&apikey=${API_KEY}`);
+      setNewsHeadlines(response.data.feed);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    }
+  };
+
+  const handleForecast = async () => {
+    // Implement forecast logic
+  };
+
+  const handleTechnicalIndicators = async () => {
+    // Implement technical indicators logic
+  };
+
+  const handleModelPredictions = async () => {
+    // Implement model predictions
+  };
+
+  const handleRecommendation = async () => {
+    // Implement recommendation logic
+  };
+
+  const handleTradeSimulation = async () => {
+    // Implement trade simulation
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Multi-Algorithm Stock Predictor</h1>
-        <input
-          type="text"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          placeholder="Enter Stock Symbol"
-        />
-        <input
-          type="number"
-          value={displayDays}
-          onChange={(e) => setDisplayDays(e.target.value)}
-          placeholder="Display Days"
-        />
-        <button onClick={fetchStockData}>Fetch Stock Data</button>
-        <button onClick={fetchCurrentPrice}>Fetch Current Price</button>
-        <button onClick={fetchNewsHeadlines}>Fetch News Headlines</button>
-        <button onClick={handleForecast}>Forecast with Prophet</button>
-        <button onClick={handleTechnicalIndicators}>Calculate Technical Indicators</button>
-        <button onClick={handleModelPredictions}>Predict with All Models</button>
-        <button onClick={handleRecommendation}>Generate Recommendation</button>
-        <button onClick={handleTradeSimulation}>Simulate Trade</button>
+    <div className={`min-h-screen ${theme === 'dark' 
+      ? 'bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white' 
+      : 'bg-gradient-to-b from-blue-50 via-blue-100 to-white text-gray-900'}`}>
+      <MarketHeader />
+      
+      <main className="container mx-auto px-4 py-6">
+        {/* Stats and Globe Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Stats Cards */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Market Intelligence Card */}
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-between">
+                <h3 className="text-lg text-gray-300">Market Intelligence</h3>
+                <DollarSign size={20} className="text-blue-400" />
+              </div>
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">
+                    {animatedNumbers.marketCap}%
+                  </p>
+                  <p className="text-green-400 flex items-center mt-2">
+                    <TrendingUp size={16} className="mr-1" /> +2.4% from yesterday
+                  </p>
+                </div>
+                <div className="h-16 w-32">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={stockData.slice(0, 5)}>
+                      <Area type="monotone" dataKey="AAPL" stroke="#4dabf7" fill="#4dabf7" fillOpacity={0.3} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1c2d', borderColor: '#2c3e50' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
 
-        <div>
-          <h2>Stock Data</h2>
-          <pre>{JSON.stringify(stockData, null, 2)}</pre>
+            {/* Sentiment Score Card */}
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-between">
+                <h3 className="text-lg text-gray-300">Sentiment Score</h3>
+                <Activity size={20} className="text-purple-400" />
+              </div>
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-300">
+                    {animatedNumbers.sentiment}%
+                  </p>
+                  <p className="text-red-400 flex items-center mt-2">
+                    <TrendingDown size={16} className="mr-1" /> -1.2% from yesterday
+                  </p>
+                </div>
+                <div className="h-16 w-32">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={stockData.slice(0, 5)}>
+                      <Area type="monotone" dataKey="MSFT" stroke="#da77f2" fill="#da77f2" fillOpacity={0.3} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1c2d', borderColor: '#2c3e50' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Prediction Accuracy Card */}
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-between">
+                <h3 className="text-lg text-gray-300">Prediction Accuracy</h3>
+                <PieChart size={20} className="text-green-400" />
+              </div>
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-300">
+                    {animatedNumbers.prediction}%
+                  </p>
+                  <p className="text-green-400 flex items-center mt-2">
+                    <TrendingUp size={16} className="mr-1" /> +3.7% from last week
+                  </p>
+                </div>
+                <div className="h-16 w-32">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={stockData.slice(0, 5)}>
+                      <Area type="monotone" dataKey="GOOGL" stroke="#69db7c" fill="#69db7c" fillOpacity={0.3} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1c2d', borderColor: '#2c3e50' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Trading Signals Card */}
+            <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-xl border border-blue-800 transform hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-between">
+                <h3 className="text-lg text-gray-300">Trading Signals</h3>
+                <Send size={20} className="text-yellow-400" />
+              </div>
+              <div className="mt-4 flex items-end justify-between">
+                <div>
+                  <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-300">
+                    {animatedNumbers.signals}
+                  </p>
+                  <p className="text-yellow-400 flex items-center mt-2">
+                    <TrendingUp size={16} className="mr-1" /> +8 from yesterday
+                  </p>
+                </div>
+                <div className="h-16 w-32">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={stockData.slice(0, 5)}>
+                      <Area type="monotone" dataKey="AMZN" stroke="#ffd43b" fill="#ffd43b" fillOpacity={0.3} />
+                      <Tooltip contentStyle={{ backgroundColor: '#1a1c2d', borderColor: '#2c3e50' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3D Globe */}
+          <div className="bg-gray-900 bg-opacity-50 backdrop-blur-md rounded-xl border border-blue-800 overflow-hidden">
+            <div className="p-4 bg-black bg-opacity-40 border-b border-blue-900">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium flex items-center">
+                  <Globe size={18} className="mr-2 text-blue-400" />
+                  Global Market Activity
+                </h3>
+                <div className="flex space-x-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                </div>
+              </div>
+            </div>
+            <div ref={globeContainerRef} className="h-96" />
+          </div>
         </div>
 
-        <div>
-          <h2>Current Price</h2>
-          <pre>{JSON.stringify(currentPrice, null, 2)}</pre>
-        </div>
-
-        <div>
-          <h2>News Headlines</h2>
-          <pre>{JSON.stringify(newsHeadlines, null, 2)}</pre>
-        </div>
-
-        <div>
-          <h2>Forecast</h2>
-          <pre>{JSON.stringify(forecast, null, 2)}</pre>
-        </div>
-
-        <div>
-          <h2>Technical Indicators</h2>
-          <pre>{JSON.stringify(technicalIndicators, null, 2)}</pre>
-        </div>
-
-        {/* Middle row - Chart and Sphere */}
+        {/* Chart and Analytics Sphere */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Main Chart */}
           <div className={`lg:col-span-2 ${theme === 'dark' 
@@ -681,7 +780,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Bottom row - News, Alerts and Analysis */}
+        {/* Market Components */}
         <MarketSentimentSurvey />
         <MarketDashboard />
         <MarketMovers />
@@ -690,7 +789,6 @@ const Dashboard = () => {
 
       <Footer />
 
-      {/* Custom CSS for scrollbar */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
@@ -710,6 +808,6 @@ const Dashboard = () => {
       `}</style>
     </div>
   );
-}
+};
 
 export default Dashboard;
