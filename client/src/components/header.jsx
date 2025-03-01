@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useRef } from 'react';
-import { Search, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { ThemeContext } from '../themeContext';
 import { Link, useLocation } from 'react-router-dom';
+import ExpandableSearch from './ExpandableSearch';
 
 const MarketHeader = () => {
   const tickerRef = useRef(null);
@@ -110,23 +111,8 @@ const MarketHeader = () => {
         
         {/* Search & Navigation Items */}
         <div className="flex-1 flex items-center justify-center space-x-6">
-          <div className="relative flex items-center">
-            <div className="relative w-64">
-              <input
-                type="text"
-                placeholder="Search a company or sector"
-                className={`w-full ${
-                  theme === 'dark'
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-100 text-gray-900'
-                } text-sm rounded-full px-10 py-2 focus:outline-none`}
-              />
-              <Search className={`absolute left-3 top-2.5 h-4 w-4 ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`} />
-              <span className="absolute right-3 top-2 text-xs text-gray-400">Ctrl⌘</span>
-            </div>
-          </div>
+          {/* Replace the old search with the expandable search component */}
+          <ExpandableSearch theme={theme} />
           
           {navigationItems.map((item) => (
             <Link
