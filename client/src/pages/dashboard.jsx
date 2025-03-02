@@ -35,6 +35,8 @@ const Dashboard = () => {
     prediction: 0,
     signals: 0
   });
+  const [topGainers, setTopGainers] = useState([]);
+  const [topLosers, setTopLosers] = useState([]);
 
   // Add new state for tracking last fetch time
   const [lastFetchTime, setLastFetchTime] = useState(null);
@@ -105,6 +107,16 @@ const Dashboard = () => {
     }
   };
 
+  const fetchMarketData = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:6001/api/stock-market-data');
+      setTopGainers(response.data.top_gainers || []);
+      setTopLosers(response.data.top_losers || []);
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+    }
+  };
+
   useEffect(() => {
     // Load cached data first
     const cachedData = localStorage.getItem('stockData');
@@ -121,6 +133,13 @@ const Dashboard = () => {
     // Set up interval for every 2 hours
     const interval = setInterval(fetchStockData, 2 * 60 * 60 * 1000);
 
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetchMarketData();
+    // Set up interval to fetch every 5 minutes
+    const interval = setInterval(fetchMarketData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -592,6 +611,76 @@ const Dashboard = () => {
     // Implement trade simulation
   };
 
+  const MarketMoversSection = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Top Gainers */}
+      <div className={`p-6 rounded-xl ${
+        theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      } border`}>
+        <h3 className="text-xl font-semibold mb-4 flex items-center">
+          <span className="text-green-500 mr-2">▲</span>
+          Top Gainers
+        </h3>
+        <div className="space-y-4">
+          {topGainers.slice(0, 5).map((stock, index) => (
+            <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+              theme === 'dark' ? 'bg-gray-750' : 'bg-gray-50'
+            }`}>
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
+                  `bg-${['blue', 'purple', 'green', 'yellow', 'pink'][index % 5]}-100 
+                   text-${['blue', 'purple', 'green', 'yellow', 'pink'][index % 5]}-700`
+                }`}>
+                  {stock.Ticker[0]}
+                </div>
+                <div className="ml-3">
+                  <div className="font-medium">{stock.Ticker}</div>
+                  <div className="text-sm text-gray-500">NSE</div>
+                </div>
+              </div>
+              <div className="text-green-500 font-semibold">
+                +{parseFloat(stock['Change (%)']).toFixed(2)}%
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Losers */}
+      <div className={`p-6 rounded-xl ${
+        theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      } border`}>
+        <h3 className="text-xl font-semibold mb-4 flex items-center">
+          <span className="text-red-500 mr-2">▼</span>
+          Top Losers
+        </h3>
+        <div className="space-y-4">
+          {topLosers.slice(0, 5).map((stock, index) => (
+            <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+              theme === 'dark' ? 'bg-gray-750' : 'bg-gray-50'
+            }`}>
+              <div className="flex items-center">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
+                  `bg-${['red', 'orange', 'rose', 'amber', 'pink'][index % 5]}-100 
+                   text-${['red', 'orange', 'rose', 'amber', 'pink'][index % 5]}-700`
+                }`}>
+                  {stock.Ticker[0]}
+                </div>
+                <div className="ml-3">
+                  <div className="font-medium">{stock.Ticker}</div>
+                  <div className="text-sm text-gray-500">NSE</div>
+                </div>
+              </div>
+              <div className="text-red-500 font-semibold">
+                {parseFloat(stock['Change (%)']).toFixed(2)}%
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`min-h-screen ${theme === 'dark' 
       ? 'bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white' 
@@ -828,7 +917,7 @@ const Dashboard = () => {
         <UploadPdf />
         <MarketSentimentSurvey />
         <MarketDashboard />
-        <MarketMovers />
+        <MarketMoversSection />
         <RecentAISessionsComponent />
       </main>
 
