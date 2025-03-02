@@ -56,7 +56,7 @@ const RecentAISessionsComponent = () => {
             
             <p className="text-xl mb-6">You have no active Ask AI sessions.</p>
             
-            <button onClick={() => navigate('/ai')} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg w-full max-w-md transition-colors duration-200">
+            <button onClick={() => navigate('/aichat')} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg w-full max-w-md transition-colors duration-200">
               Ask AI
             </button>
           </div>

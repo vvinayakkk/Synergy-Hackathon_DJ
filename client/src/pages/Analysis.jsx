@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import MarketHeader from '../components/header';
+import AnalysisButton from '../components/AnalysisButton';
+
+const GlassCard = ({ children, className = '' }) => (
+  <div className={`backdrop-blur-md bg-white/10 rounded-xl border border-white/20 shadow-xl ${className}`}>
+    {children}
+  </div>
+);
 
 const Analysis = () => {
   const [combinedData, setCombinedData] = useState([]);
@@ -14,18 +21,20 @@ const Analysis = () => {
     prediction: null,
     upper_bound: null,
   });
-  const [newsData, setNewsData] = useState([]);
+  const [newsData, setNewsData] = useState([]); // Initialize as an empty array
   const [recommendationData, setRecommendationData] = useState({
-    buy: null,
-    confidence: null,
-    error: null,
-    investment_horizon: null,
-    key_insights: [],
-    last_updated: null,
-    risk_level: null,
-    score: null,
+    daily_actions: [], // Initialize as an empty array
+    key_factors: [], // Initialize as an empty array
+    summary: {
+      confidence_score: null,
+      current_price: null,
+      recommendation: null,
+      risk_level: null,
+      target_price: null,
+      upside_potential: null,
+    },
   });
-  const [symbol, setSymbol] = useState('TSLA');
+  const [symbol, setSymbol] = useState('AAPL');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSMA20, setShowSMA20] = useState(true);
@@ -84,6 +93,8 @@ const Analysis = () => {
           axios.post(`http://localhost:5000/api/predictions`, { symbol }),
           axios.get(`http://localhost:5000/api/news?symbol=${symbol}`),
           axios.get(`http://localhost:5000/api/recommendation?symbol=${symbol}&display_days=600`),
+          axios.get(`http://localhost:5000/api/recommendation2?symbol=${symbol}&display_days=600`),
+
         ]);
 
         if (!historicalResponse.data || !forecastResponse.data || !predictionResponse.data || !newsResponse.data || !recommendationResponse.data) {
@@ -99,8 +110,8 @@ const Analysis = () => {
         setHistoricalData(historical);
         setForecastData(forecast);
         setPredictionData(predictionResponse.data);
-        setNewsData(newsResponse.data);
-        setRecommendationData(recommendationResponse.data);
+        setNewsData(newsResponse.data || []); // Ensure newsData is an array
+        setRecommendationData(recommendationResponse.data); // Set recommendation data
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(error.message || 'Failed to fetch data');
@@ -120,19 +131,24 @@ const Analysis = () => {
     setShowPrediction(!showPrediction); // Toggle prediction visibility
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white">
-        <MarketHeader />
-        <div className="container mx-auto px-4 py-6 flex items-center justify-center h-64">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-            <h2 className="text-xl font-bold">Loading data...</h2>
+  const LoadingSkeleton = () => (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white">
+      <MarketHeader />
+      <div className="container mx-auto px-4 py-6">
+        <div className="animate-pulse space-y-8">
+          <div className="h-8 bg-gray-700 rounded w-1/4"></div>
+          <div className="h-96 bg-gray-700 rounded"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-40 bg-gray-700 rounded"></div>
+            ))}
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+
+  if (loading) return <LoadingSkeleton />;
 
   if (error) {
     return (
@@ -166,20 +182,34 @@ const Analysis = () => {
     forecastData.slice((2 * forecastData.length) / 3),
   ];
 
+  const chartDescriptions = {
+    mainChart: "Comprehensive analysis of price movements, trends, and technical indicators with AI-powered pattern recognition.",
+    historical1: "Analysis of early period price action showing key support and resistance levels.",
+    historical2: "Mid-period analysis highlighting trend changes and momentum shifts.",
+    historical3: "Recent period analysis with volume profile and price action patterns.",
+    forecast1: "Short-term forecast analysis using machine learning models and market sentiment.",
+    forecast2: "Medium-term prediction analysis incorporating technical and fundamental factors.",
+    forecast3: "Long-term forecast analysis with macro-economic indicators and market cycles."
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-950 to-black text-white">
       <MarketHeader />
-      <main className="container mx-auto px-4 py-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            {symbol} Stock Analysis & Forecast
-          </h2>
-          <div className="mt-4 md:mt-0">
+      <main className="container mx-auto px-4 py-6 space-y-8">
+        {/* Header Section */}
+        <GlassCard className="p-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                {symbol} Stock Analysis
+              </h2>
+              <p className="text-gray-400">Comprehensive market analysis and predictions</p>
+            </div>
             <select 
-              id="symbol" 
               value={symbol} 
               onChange={handleSymbolChange}
-              className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-6 py-3 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl 
+                       text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             >
               <option value="TSLA">TSLA</option>
               <option value="AAPL">AAPL</option>
@@ -188,73 +218,63 @@ const Analysis = () => {
               <option value="GOOGL">GOOGL</option>
             </select>
           </div>
-        </div>
+        </GlassCard>
 
-        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
-          <h3 className="text-lg font-bold mb-6 text-blue-300">Chart Controls</h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-            <div className="flex items-center">
-              <div 
-                className={`w-6 h-6 rounded flex items-center justify-center cursor-pointer mr-3 transition-colors duration-300 ${showSMA20 ? 'bg-yellow-400' : 'bg-gray-600'}`}
-                onClick={() => setShowSMA20(!showSMA20)}
-              >
-                {showSMA20 && <span className="text-gray-900 text-sm">✓</span>}
-              </div>
-              <span>Show 20-Day SMA</span>
+        {/* Chart Controls */}
+        <GlassCard className="p-6">
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-blue-300">Chart Settings</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { label: '20-Day SMA', state: showSMA20, setter: setShowSMA20, color: 'yellow' },
+                { label: '50-Day SMA', state: showSMA50, setter: setShowSMA50, color: 'green' },
+                { label: 'Bollinger Bands', state: showBB, setter: setShowBB, color: 'purple' },
+                { label: 'RSI/MACD', state: showIndicators, setter: setShowIndicators, color: 'red' }
+              ].map(({ label, state, setter, color }) => (
+                <button
+                  key={label}
+                  onClick={() => setter(!state)}
+                  className={`p-4 rounded-xl transition-all duration-300 ${
+                    state 
+                      ? `bg-${color}-500/20 border-${color}-500 border-2 text-${color}-400`
+                      : 'bg-gray-800/50 border-gray-700 border hover:bg-gray-700/50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${state ? `bg-${color}-500` : 'bg-gray-600'}`} />
+                    <span>{label}</span>
+                  </div>
+                </button>
+              ))}
             </div>
-            
-            <div className="flex items-center">
-              <div 
-                className={`w-6 h-6 rounded flex items-center justify-center cursor-pointer mr-3 transition-colors duration-300 ${showSMA50 ? 'bg-green-500' : 'bg-gray-600'}`}
-                onClick={() => setShowSMA50(!showSMA50)}
-              >
-                {showSMA50 && <span className="text-white text-sm">✓</span>}
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <label className="text-gray-300 whitespace-nowrap">Forecast Horizon:</label>
+              <div className="w-full flex items-center gap-4">
+                <input 
+                  type="range" 
+                  value={forecastDays} 
+                  onChange={(e) => setForecastDays(Number(e.target.value))} 
+                  min="7" 
+                  max="365"
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="text-blue-400 font-mono w-16">{forecastDays}d</span>
               </div>
-              <span>Show 50-Day SMA</span>
-            </div>
-            
-            <div className="flex items-center">
-              <div 
-                className={`w-6 h-6 rounded flex items-center justify-center cursor-pointer mr-3 transition-colors duration-300 ${showBB ? 'bg-purple-500' : 'bg-gray-600'}`}
-                onClick={() => setShowBB(!showBB)}
-              >
-                {showBB && <span className="text-white text-sm">✓</span>}
-              </div>
-              <span>Show Bollinger Bands</span>
-            </div>
-            
-            <div className="flex items-center">
-              <div 
-                className={`w-6 h-6 rounded flex items-center justify-center cursor-pointer mr-3 transition-colors duration-300 ${showIndicators ? 'bg-red-500' : 'bg-gray-600'}`}
-                onClick={() => setShowIndicators(!showIndicators)}
-              >
-                {showIndicators && <span className="text-white text-sm">✓</span>}
-              </div>
-              <span>Show RSI/MACD</span>
             </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-center">
-            <label htmlFor="forecastDays" className="mr-4 mb-2 sm:mb-0">Forecast Horizon (Days):</label>
-            <div className="w-full sm:w-64 flex items-center">
-              <input 
-                type="range" 
-                id="forecastDays" 
-                value={forecastDays} 
-                onChange={(e) => setForecastDays(Number(e.target.value))} 
-                min="7" 
-                max="365" 
-                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="ml-4 w-10 text-center">{forecastDays}</span>
-            </div>
-          </div>
-        </div>
+        </GlassCard>
 
-        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
-          <h3 className="text-lg font-bold mb-4 text-blue-300">Combined Stock Data and Forecast</h3>
-          <ResponsiveContainer width="100%" height={400}>
+        {/* Main Chart - Add button */}
+        <GlassCard className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-blue-300">Price Chart</h3>
+            <AnalysisButton 
+              data={combinedData} 
+              graphType="comprehensive price"
+            />
+          </div>
+          <ResponsiveContainer width="100%" height={500}>
             <LineChart data={combinedData}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
@@ -385,21 +405,26 @@ const Analysis = () => {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </GlassCard>
 
         {/* Toggle Button for Prediction */}
         <div className="flex justify-center mb-8">
           <button
             onClick={togglePrediction}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+            className="group relative px-8 py-3 overflow-hidden rounded-xl bg-blue-600 hover:bg-blue-500 
+                     transition-all duration-300 transform hover:scale-105"
           >
-            {showPrediction ? 'Hide Prediction' : 'Show Prediction'}
+            <div className="absolute inset-0 w-3 bg-blue-400 transition-all duration-300 ease-out 
+                          group-hover:w-full"></div>
+            <span className="relative text-white font-semibold">
+              {showPrediction ? 'Hide Prediction' : 'Show Prediction'}
+            </span>
           </button>
         </div>
 
         {/* Prediction Data (Conditional Rendering) */}
         {showPrediction && (
-          <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
+          <GlassCard className="p-6 transform transition-all duration-500">
             <h3 className="text-lg font-bold mb-4 text-blue-300">Prediction Data</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-800 p-4 rounded-lg">
@@ -430,14 +455,14 @@ const Analysis = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </GlassCard>
         )}
 
         {/* News Section */}
-        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
+        <GlassCard className="p-6">
           <h3 className="text-lg font-bold mb-4 text-blue-300">Latest News</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {newsData.map((news, index) => (
+            {Array.isArray(newsData) && newsData.map((news, index) => (
               <div key={index} className="bg-gray-800 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold mb-2">{news.title}</h4>
                 <p className="text-sm text-gray-300 mb-4">{news.description}</p>
@@ -447,54 +472,91 @@ const Analysis = () => {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Recommendation Data */}
-        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
+        <GlassCard className="p-6">
           <h3 className="text-lg font-bold mb-4 text-blue-300">Recommendation</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 p-4 rounded-lg">
               <h4 className="text-lg font-semibold mb-2">Recommendation</h4>
-              <p className="text-sm text-gray-300">{recommendationData.buy ? 'Buy' : 'Sell'}</p>
+              <p className="text-sm text-gray-300">{recommendationData.summary.recommendation}</p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
               <h4 className="text-lg font-semibold mb-2">Confidence</h4>
-              <p className="text-sm text-gray-300">{recommendationData.confidence}%</p>
+              <p className="text-sm text-gray-300">{(recommendationData.summary.confidence_score * 100).toFixed(2)}%</p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">Investment Horizon</h4>
-              <p className="text-sm text-gray-300">{recommendationData.investment_horizon}</p>
+              <h4 className="text-lg font-semibold mb-2">Current Price</h4>
+              <p className="text-sm text-gray-300">${recommendationData.summary.current_price}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Target Price</h4>
+              <p className="text-sm text-gray-300">${recommendationData.summary.target_price}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Upside Potential</h4>
+              <p className="text-sm text-gray-300">{recommendationData.summary.upside_potential}</p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg">
               <h4 className="text-lg font-semibold mb-2">Risk Level</h4>
-              <p className="text-sm text-gray-300">{recommendationData.risk_level}</p>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">Score</h4>
-              <p className="text-sm text-gray-300">{recommendationData.score}</p>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2">Last Updated</h4>
-              <p className="text-sm text-gray-300">{recommendationData.last_updated}</p>
+              <p className="text-sm text-gray-300">{recommendationData.summary.risk_level}</p>
             </div>
           </div>
           <div className="mt-6">
             <h4 className="text-lg font-semibold mb-2">Key Insights</h4>
             <div className="bg-gray-800 p-4 rounded-lg">
               <ul className="list-disc list-inside">
-                {recommendationData.key_insights.map((insight, index) => (
+                {Array.isArray(recommendationData.key_factors) && recommendationData.key_factors.map((insight, index) => (
                   <li key={index} className="text-sm text-gray-300">{insight}</li>
                 ))}
               </ul>
             </div>
           </div>
-        </div>
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold mb-2">Daily Actions</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-gray-800 rounded-lg">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Date</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Action</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Entry Price</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Stop Loss</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Target Price</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Time Frame</th>
+                    <th className="px-4 py-2 text-left text-sm text-gray-300">Volume Suggestion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(recommendationData.daily_actions) && recommendationData.daily_actions.map((action, index) => (
+                    <tr key={index} className="border-t border-gray-700">
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.date}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.action}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.entry_price}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.stop_loss}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.target_price}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.time_frame}</td>
+                      <td className="px-4 py-2 text-sm text-gray-300">{action.volume_suggestion}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </GlassCard>
 
-        {/* Grid Graphs */}
+        {/* Historical Charts - Add buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {historicalSubsets.map((subset, index) => (
-            <div key={index} className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-bold mb-4 text-blue-300">Historical Data {index + 1}</h3>
+            <GlassCard key={index} className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-blue-300">Historical Data {index + 1}</h3>
+                <AnalysisButton 
+                  data={subset} 
+                  graphType={`historical period ${index + 1}`}
+                />
+              </div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={subset}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -584,14 +646,21 @@ const Analysis = () => {
                   )}
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </GlassCard>
           ))}
         </div>
 
+        {/* Forecast Charts - Add buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {forecastSubsets.map((subset, index) => (
-            <div key={index} className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg">
-              <h3 className="text-lg font-bold mb-4 text-blue-300">Forecast Data {index + 1}</h3>
+            <GlassCard key={index} className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-blue-300">Forecast Data {index + 1}</h3>
+                <AnalysisButton 
+                  data={subset} 
+                  graphType={`forecast period ${index + 1}`}
+                />
+              </div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={subset}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
@@ -654,7 +723,7 @@ const Analysis = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </GlassCard>
           ))}
         </div>
       </main>
@@ -663,3 +732,7 @@ const Analysis = () => {
 };
 
 export default Analysis;
+
+
+
+

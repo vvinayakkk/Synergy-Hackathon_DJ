@@ -56,6 +56,57 @@ const NiftyChart = () => {
       { time: '11 Feb', value: 23000 },
       { time: '19 Feb', value: 22800 },
       { time: '28 Feb', value: 22120 }
+    ],
+    '1Y': [
+      { time: 'Mar 2024', value: 21850 },
+      { time: 'Apr 2024', value: 22340 },
+      { time: 'May 2024', value: 23150 },
+      { time: 'Jun 2024', value: 22780 },
+      { time: 'Jul 2024', value: 23450 },
+      { time: 'Aug 2024', value: 24120 },
+      { time: 'Sep 2024', value: 23890 },
+      { time: 'Oct 2024', value: 25670 },
+      { time: 'Nov 2024', value: 24230 },
+      { time: 'Dec 2024', value: 24580 },
+      { time: 'Jan 2025', value: 23480 },
+      { time: 'Feb 2025', value: 22120 }
+    ],
+    '5Y': [
+      { time: '2020', value: 12350 },
+      { time: 'Apr 2020', value: 9850 },
+      { time: 'Jul 2020', value: 11230 },
+      { time: 'Oct 2020', value: 13450 },
+      { time: '2021', value: 15670 },
+      { time: 'Apr 2021', value: 14890 },
+      { time: 'Jul 2021', value: 16780 },
+      { time: 'Oct 2021', value: 18230 },
+      { time: '2022', value: 17450 },
+      { time: 'Apr 2022', value: 16890 },
+      { time: 'Jul 2022', value: 18560 },
+      { time: 'Oct 2022', value: 19870 },
+      { time: '2023', value: 21340 },
+      { time: 'Apr 2023', value: 20780 },
+      { time: 'Jul 2023', value: 22450 },
+      { time: 'Oct 2023', value: 23670 },
+      { time: '2024', value: 24580 },
+      { time: 'Feb 2024', value: 22120 }
+    ],
+    'Max': [
+      { time: '2010', value: 5120 },
+      { time: '2011', value: 4890 },
+      { time: '2012', value: 5670 },
+      { time: '2013', value: 6230 },
+      { time: '2014', value: 8450 },
+      { time: '2015', value: 7890 },
+      { time: '2016', value: 8670 },
+      { time: '2017', value: 10450 },
+      { time: '2018', value: 11230 },
+      { time: '2019', value: 12780 },
+      { time: '2020', value: 9850 },
+      { time: '2021', value: 15670 },
+      { time: '2022', value: 18560 },
+      { time: '2023', value: 21340 },
+      { time: '2024', value: 22120 }
     ]
   };
 
@@ -117,6 +168,7 @@ const NiftyChart = () => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: '#6B7280', fontSize: 12 }}
+              interval={'preserveStartEnd'}
             />
             <YAxis 
               domain={[min, max]}
@@ -127,7 +179,7 @@ const NiftyChart = () => {
             />
             <Tooltip content={<CustomTooltip />} />
             <Line 
-              type="monotone" 
+              type="linear"
               dataKey="value" 
               stroke="#F87171" 
               strokeWidth={2}

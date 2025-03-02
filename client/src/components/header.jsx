@@ -147,7 +147,7 @@ const MarketHeader = () => {
         
         {/* User Section */}
         <div className="flex items-center space-x-4">
-          <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>Analysis</span>
+          <button onClick={() => navigate('/analysis')} className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>Analysis</button>
           <button onClick={toggleTheme} className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>
             {theme === 'light' ? <Sun className='h-5 w-5'/> : <Moon className="h-5 w-5" />}
           </button>

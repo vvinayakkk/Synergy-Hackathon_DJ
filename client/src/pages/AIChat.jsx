@@ -34,7 +34,7 @@ const AIChatInterface = () => {
       setInputValue('');
 
       // Send request to backend
-      const response = await axios.post('http://127.0.0.1:500/analyze', {
+      const response = await axios.post('http://127.0.0.1:5005/analyze', {
         message: userMessage.content
       });
 
