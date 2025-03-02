@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ThemeContext } from '../themeContext';
-
+import { useContext } from 'react';
 const FiiDiiChart = ({ data }) => {
   const { theme } = useContext(ThemeContext);
 
