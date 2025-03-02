@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import MarketHeader from '../components/header';
 import Footer from '../components/footer';
 import { ThemeContext } from '../themeContext';
+import axios from 'axios';
 
 const TimelinePage = () => {
   const { theme } = useContext(ThemeContext);
@@ -17,80 +18,166 @@ const TimelinePage = () => {
   const [timeRange, setTimeRange] = useState('today');
   const [sortBy, setSortBy] = useState('newest');
 
-  // Fetch data function
-  const fetchTimelineData = async () => {
-    setIsLoading(true);
-    try {
-      // In future, replace these with actual API calls
-      // const response = await fetch('your-api-endpoint');
-      // const data = await response.json();
-      
-      // For now, using mock data
-      const mockData = {
-        news: [
-          {
-            source: 'Business Standard',
-            logo: 'BS',
-            time: '44 mins ago',
-            title: 'India, EU discuss efforts to accelerate balanced, mutually beneficial FTA',
-            content: 'With India and the EU setting the year-end deadline to conclude a free trade agreement, teams from both sides held ...'
-          },
-          {
-            source: 'Zee Business',
-            logo: 'ZB',
-            time: '52 mins ago',
-            title: 'Union Minister Piyush Goyal highlights role of domestic investors in stabilising markets at AMFI Mutual Fund Summit',
-            content: 'The minister praised the growing enthusiasm of domestic investors, who have been investing heavily in the markets.'
-          },
-          {
-            source: 'Mint',
-            logo: 'M',
-            time: '1 hour ago',
-            title: 'Hyundai Motor India receives GST notices worth nearly ₹17.5 crore; stock down 7% in five sessions',
-            content: ''
-          },
-          {
-            source: 'Business Line',
-            logo: 'BL',
-            time: '23 hours ago',
-            title: `Market volatility likely to dictate new SEBI chief's priorities`,
-            content: 'Tuhin Kanta Pandey takes over SEBI amid market slump, facing challenges of restoring investor trust and regulatory balance.'
-          },
-          {
-            source: 'Business Line',
-            logo: 'BL',
-            time: '23 hours ago',
-            title: 'India fixes wheat procurement target at 31 million tonnes',
-            content: 'Centre sets target to buy 31 mt of wheat, 7 mt of rice, and 1.6 mt of Shree Anna; urges States to maximize procurement.'
-          }
-        ],
-        gainers: [
-          { name: 'HDFC Bank Ltd', ticker: 'HDFCBANK', price: 1731.10, change: 1.86 },
-          { name: 'Shriram Finance Ltd', ticker: 'SHRIRAMFIN', price: 617.55, change: 1.74 },
-          { name: 'Coal India Ltd', ticker: 'COALINDIA', price: 369.10, change: 1.44 },
-          { name: 'Interglobe Aviation Ltd', ticker: 'INDIGO', price: 4480.00, change: 0.85 },
-          { name: 'Lupin Ltd', ticker: 'LUPIN', price: 1906.20, change: 0.78 }
-        ],
-        losers: [
-          { name: 'Indian Railway Finan...', ticker: 'IRFC', price: 112.40, change: -6.64 },
-          { name: 'Jio Financial Servic...', ticker: 'JIOFIN', price: 207.70, change: -6.29 },
-          { name: 'Tech Mahindra Ltd', ticker: 'TECHM', price: 1488.90, change: -6.19 },
-          { name: 'Wipro Ltd', ticker: 'WIPRO', price: 277.65, change: -5.77 },
-          { name: 'Macrotech Developers Ltd', ticker: 'LODHA', price: 1131.95, change: -5.40 }
-        ]
-      };
+  // Alpha Vantage API Key
+  // const API_KEY = 'OBNN8M6HAY6LT88A'; // Replace with your API key
+  // const MARKET_AUX_API_KEY = 'ZVsaCs6WkeQeMmscIZUcZohbTS9MZbLlgLcrJMo5';
 
-      setNewsArticles(mockData.news);
-      setTopGainers(mockData.gainers);
-      setTopLosers(mockData.losers);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch timeline data');
-      console.error('Error fetching timeline data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const NEWS_API_KEY = '0de37ca8af9748898518daf699189abf'
+  // Fetch news articles from Alpha Vantage
+  // const fetchNewsArticles = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&apikey=${API_KEY}`
+  //     );
+  //     const data = await response.json();
+  //     if (data.feed) {
+  //       const articles = data.feed.map(article => ({
+  //         source: article.source,
+  //         logo: article.source.charAt(0), // Use first letter as logo
+  //         time: new Date(article.time_published).toLocaleTimeString(),
+  //         title: article.title,
+  //         content: article.summary,
+  //       }));
+  //       setNewsArticles(articles);
+  //     } else {
+  //       throw new Error('No news articles found');
+  //     }
+  //   } catch (err) {
+  //     console.error('Error fetching news articles:', err);
+  //     setError('Failed to fetch news articles');
+  //   }
+  // };
+  // Fetch news articles using News API
+const fetchNewsArticles = async () => {
+  try {
+      const response = await fetch(
+          `https://newsapi.org/v2/everything?q=stock%20market&apiKey=${NEWS_API_KEY}&pageSize=10`
+      );
+      const data = await response.json();
+      if (data.articles) {
+          const articles = data.articles.map(article => ({
+              source: article.source.name,
+              logo: article.source.name.charAt(0),
+              time: new Date(article.publishedAt).toLocaleTimeString(),
+              title: article.title,
+              content: article.description || article.content,
+          }));
+          setNewsArticles(articles);
+      } else {
+          throw new Error('No news articles found');
+      }
+  } catch (err) {
+      console.error('Error fetching news articles:', err);
+      setError('Failed to fetch news articles');
+  }
+};
+
+// Fetch stock market data from the backend
+const fetchStockMarketData = async () => {
+  try {
+    const response = await axios.get('http://127.0.0.1:6001/api/stock-market-data');
+    const data = response.data; // Axios stores the response data in `data` property
+    console.log('API Response:', response.data);
+    setTopGainers(data.top_gainers);
+    setTopLosers(data.top_losers);
+  } catch (err) {
+    console.error('Error fetching stock market data:', err);
+  }
+};
+
+// Fetch all data
+const fetchTimelineData = async () => {
+  setIsLoading(true);
+  setError(null);
+  try {
+    await Promise.all([fetchNewsArticles(), fetchStockMarketData()]);
+  } catch (err) {
+    setError('Failed to fetch timeline data');
+    console.error('Error fetching timeline data:', err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Call fetchTimelineData in useEffect
+useEffect(() => {
+  fetchTimelineData();
+}, []);
+
+// Fetch top gainers and losers (requires a financial API)
+// const fetchTopGainersLosers = async () => {
+//   try {
+//       const response = await fetch(
+//           `https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey=${ALPHA_VANTAGE_API_KEY}`
+//       );
+//       const data = await response.json();
+//       if (data.top_gainers && data.top_losers) {
+//           setTopGainers(data.top_gainers);
+//           setTopLosers(data.top_losers);
+//       } else {
+//           throw new Error('No gainers or losers data found');
+//       }
+//   } catch (err) {
+//       console.error('Error fetching top gainers/losers:', err);
+//   }
+// };
+
+  // Fetch top gainers and losers from Alpha Vantage
+  // const fetchTopGainersLosers = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://www.alphavantage.co/query?function=TOP_GAINERS_LOSERS&apikey=${API_KEY}`
+  //     );
+  //     const data = await response.json();
+  //     if (data.top_gainers && data.top_losers) {
+  //       setTopGainers(data.top_gainers);
+  //       setTopLosers(data.top_losers);
+  //     } else {
+  //       throw new Error('No gainers or losers data found');
+  //     }
+  //   } catch (err) {
+  //     console.error('Error fetching top gainers/losers:', err);
+  //   }
+  // };
+//   const fetchTopGainersLosers = async () => {
+//     try {
+//         const response = await fetch(
+//             `https://api.marketaux.com/v1/entity/list?api_token=${MARKET_AUX_API_KEY}`
+//         );
+//         const data = await response.json();
+//         if (data.data) {
+//             // Assuming the data contains market entities with price change information
+//             const entities = data.data;
+
+//             // Sort entities by price change to determine gainers and losers
+//             const sortedEntities = entities.sort((a, b) => b.price_change - a.price_change);
+
+//             const topGainers = sortedEntities.slice(0, 5); // Top 5 gainers
+//             const topLosers = sortedEntities.slice(-5); // Top 5 losers
+
+//             setTopGainers(topGainers);
+//             setTopLosers(topLosers);
+//         } else {
+//             throw new Error('No gainers or losers data found');
+//         }
+//     } catch (err) {
+//         console.error('Error fetching top gainers/losers:', err);
+//     }
+// };
+
+//   // Fetch all data
+//   const fetchTimelineData = async () => {
+//     setIsLoading(true);
+//     setError(null);
+//     try {
+//       await Promise.all([fetchNewsArticles(), fetchTopGainersLosers()]);
+//     } catch (err) {
+//       setError('Failed to fetch timeline data');
+//       console.error('Error fetching timeline data:', err);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
 
   // Category change handler
   const handleCategoryChange = (category) => {
@@ -100,19 +187,16 @@ const TimelinePage = () => {
       }
       return [...prev, category];
     });
-    // In future: Trigger API call with new categories
   };
 
   // Time range change handler
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
-    // In future: Trigger API call with new time range
   };
 
   // Sort change handler
   const handleSortChange = (sortType) => {
     setSortBy(sortType);
-    // In future: Trigger API call with new sort type
   };
 
   // Initial data fetch
@@ -122,8 +206,7 @@ const TimelinePage = () => {
 
   // Refetch when filters change
   useEffect(() => {
-    // In future: Add proper dependencies and API call
-    // fetchTimelineData();
+    fetchTimelineData();
   }, [selectedCategories, timeRange, sortBy, activeCapTab]);
 
   if (error) {
@@ -149,15 +232,13 @@ const TimelinePage = () => {
 
   return (
     <div className={`flex flex-col min-h-screen ${
-      theme === 'dark' 
-        ? 'bg-gray-900 text-white' 
-        : 'bg-gray-50 text-gray-900'
+      theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
     }`}>
       <MarketHeader />
       
-      <div className="flex p-4 flex-1 overflow-hidden">
+      <div className="flex-1 container mx-auto px-4 py-6 flex">
         {/* Left Sidebar */}
-        <div className="w-1/4 pr-4">
+        <div className="w-1/4 pr-6 flex-shrink-0 overflow-y-auto">
           <div className="mb-6">
             <h1 className="text-3xl font-bold mb-2">Timeline</h1>
             <p className={`text-sm ${
@@ -292,153 +373,153 @@ const TimelinePage = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="w-3/4 pl-4 flex flex-col h-full">
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search over 1 million news articles"
-                className={`w-full p-2 pl-10 rounded ${
-                  theme === 'dark' 
-                    ? 'bg-gray-800 border-gray-700' 
-                    : 'bg-white border-gray-300'
-                } border`}
-              />
-              <svg className={`absolute left-3 top-2.5 w-5 h-5 ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
+        <div className="w-3/4 flex flex-col h-[calc(100vh-120px)]">
+          {/* Fixed Search and Tabs */}
+          <div className="sticky top-0 z-10 bg-inherit pb-4">
+            {/* Search Bar */}
+            <div className="mb-4">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Search over 1 million news articles"
+                  className={`w-full p-2 pl-10 rounded ${
+                    theme === 'dark' 
+                      ? 'bg-gray-800 border-gray-700' 
+                      : 'bg-white border-gray-300'
+                  } border`}
+                />
+                <svg className={`absolute left-3 top-2.5 w-5 h-5 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="M21 21l-4.35-4.35" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Cap Tabs */}
+            <div className="mb-4">
+              <div className="flex space-x-2">
+                {['Large Cap', 'Mid Cap', 'Small Cap'].map(cap => (
+                  <button
+                    key={cap}
+                    onClick={() => setActiveCapTab(cap)}
+                    className={`px-4 py-2 rounded transition-colors ${
+                      activeCapTab === cap 
+                        ? theme === 'dark' 
+                          ? 'bg-gray-700 text-white' 
+                          : 'bg-blue-100 text-blue-800'
+                        : theme === 'dark'
+                          ? 'bg-gray-800 text-gray-300'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {cap}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Cap Tabs */}
-          <div className="mb-4">
-            <div className="flex space-x-2">
-              {['Large Cap', 'Mid Cap', 'Small Cap'].map(cap => (
-                <button
-                  key={cap}
-                  onClick={() => setActiveCapTab(cap)}
-                  className={`px-4 py-2 rounded transition-colors ${
-                    activeCapTab === cap 
-                      ? theme === 'dark' 
-                        ? 'bg-gray-700 text-white' 
-                        : 'bg-blue-100 text-blue-800'
-                      : theme === 'dark'
-                        ? 'bg-gray-800 text-gray-300'
-                        : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {cap}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Scrollable News Content */}
-          <div className="flex-1 overflow-hidden">
-            <div className="grid grid-cols-12 gap-4 h-full">
-              {/* News Feed - Scrollable */}
-              <div className="col-span-7 overflow-y-auto pr-4 custom-scrollbar">
+          {/* Content Grid */}
+          <div className="flex gap-6 flex-1 min-h-0">
+            {/* News Feed */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
                 {isLoading ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="loader"></div>
                   </div>
                 ) : (
-                  newsArticles.map((article, index) => (
-                    <div key={index} className={`mb-4 rounded p-4 ${
-                      theme === 'dark' 
-                        ? 'bg-gray-800' 
-                        : 'bg-white border border-gray-200'
-                    }`}>
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center mr-2 text-white">
-                          {article.logo}
-                        </div>
-                        <span className="text-sm">{article.source}</span>
-                        <span className={`text-sm ml-2 ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}>• {article.time}</span>
-                      </div>
-                      <h3 className="font-bold mb-2">{article.title}</h3>
-                      <p className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                      }`}>{article.content}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Top Gainers/Losers - Scrollable */}
-              <div className="col-span-5 overflow-y-auto custom-scrollbar">
-                {/* Top Gainers */}
-                <div className={`mb-6 rounded p-4 ${
-                  theme === 'dark' 
-                    ? 'bg-gray-800' 
-                    : 'bg-white border border-gray-200'
-                }`}>
-                  <h2 className="text-xl font-bold mb-4">Top Gainers</h2>
-                  {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="loader"></div>
-                    </div>
-                  ) : (
-                    topGainers.map((stock, index) => (
-                      <div key={index} className="mb-3">
-                        <div className="flex justify-between">
-                          <div>
-                            <div className="font-medium">{stock.name}</div>
-                            <div className="text-sm text-gray-400">{stock.ticker}</div>
+                  <div className="space-y-4">
+                    {newsArticles.map((article, index) => (
+                      <div 
+                        key={index} 
+                        className={`p-4 rounded-lg transition-all duration-300 hover:scale-[1.01] ${
+                          theme === 'dark' 
+                            ? 'bg-gray-800 hover:bg-gray-750' 
+                            : 'bg-white hover:shadow-lg border border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-medium">
+                            {article.logo}
                           </div>
-                          <div className="text-right">
-                            <div>{stock.price.toLocaleString()}</div>
-                            <div className="text-green-500 flex items-center">
-                              <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M5 15l7-7 7 7" />
-                              </svg>
-                              {stock.change}%
+                          <div className="ml-3">
+                            <div className="font-medium">{article.source}</div>
+                            <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {article.time}
                             </div>
                           </div>
                         </div>
+                        <h3 className="font-bold mb-2 line-clamp-2">{article.title}</h3>
+                        <p className={`text-sm line-clamp-3 ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>{article.content}</p>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Top Gainers/Losers Column */}
+            <div className="w-[400px] overflow-hidden flex flex-col">
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6 pr-2">
+                {/* Top Gainers */}
+                <div className={`rounded-lg p-6 ${
+                  theme === 'dark' 
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                } border`}>
+                  <h2 className="text-xl font-bold mb-4">Top Gainers</h2>
+                  <div className="space-y-3">
+                    {topGainers.map((stock, index) => (
+                      <div key={index} className={`p-4 rounded-lg ${
+                        theme === 'dark' 
+                          ? 'bg-gray-750 hover:bg-gray-700' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      } transition-colors`}>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">{stock.Ticker}</div>
+                            <div className="text-sm text-gray-500">NSE</div>
+                          </div>
+                          <div className="text-green-500 font-semibold">
+                            +{parseFloat(stock['Change (%)']).toFixed(2)}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Top Losers */}
-                <div className={`rounded p-4 ${
+                <div className={`rounded-lg p-6 ${
                   theme === 'dark' 
-                    ? 'bg-gray-800' 
-                    : 'bg-white border border-gray-200'
-                }`}>
+                    ? 'bg-gray-800 border-gray-700' 
+                    : 'bg-white border-gray-200'
+                } border`}>
                   <h2 className="text-xl font-bold mb-4">Top Losers</h2>
-                  {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="loader"></div>
-                    </div>
-                  ) : (
-                    topLosers.map((stock, index) => (
-                      <div key={index} className="mb-3">
-                        <div className="flex justify-between">
+                  <div className="space-y-3">
+                    {topLosers.map((stock, index) => (
+                      <div key={index} className={`p-4 rounded-lg ${
+                        theme === 'dark' 
+                          ? 'bg-gray-750 hover:bg-gray-700' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      } transition-colors`}>
+                        <div className="flex justify-between items-center">
                           <div>
-                            <div className="font-medium">{stock.name}</div>
-                            <div className="text-sm text-gray-400">{stock.ticker}</div>
+                            <div className="font-medium">{stock.Ticker}</div>
+                            <div className="text-sm text-gray-500">NSE</div>
                           </div>
-                          <div className="text-right">
-                            <div>{stock.price.toLocaleString()}</div>
-                            <div className="text-red-500 flex items-center">
-                              <svg className="w-3 h-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M19 9l-7 7-7-7" />
-                              </svg>
-                              {Math.abs(stock.change)}%
-                            </div>
+                          <div className="text-red-500 font-semibold">
+                            {parseFloat(stock['Change (%)']).toFixed(2)}%
                           </div>
                         </div>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -451,18 +532,17 @@ const TimelinePage = () => {
       {/* Custom Scrollbar Styles */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: ${theme === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.1)'};
-          border-radius: 10px;
+          background: ${theme === 'dark' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: ${theme === 'dark' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(59, 130, 246, 0.3)'};
-          border-radius: 10px;
+          border-radius: 2px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: ${theme === 'dark' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.5)'};
+          background: ${theme === 'dark' ? 'rgba(59, 130, 246, 0.7)' : 'rgba(59, 130, 246, 0.5)'};
         }
       `}</style>
     </div>

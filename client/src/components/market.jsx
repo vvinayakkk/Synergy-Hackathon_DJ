@@ -19,12 +19,42 @@ const MarketDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_KEY = 'YOUR_ALPHA_VANTAGE_API_KEY';
+  const API_KEY = 'S07OFQBXR1R0R7FB';
+
+  const CACHE_KEY = 'marketDataCache';
+  const CACHE_DURATION = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+
+  const getCachedData = () => {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_DURATION) {
+        return data;
+      }
+    }
+    return null;
+  };
+
+  const setCachedData = (data) => {
+    const cacheObject = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObject));
+  };
 
   useEffect(() => {
     const fetchMarketData = async () => {
       try {
-        // Fetch NIFTY data
+        // Check cache first
+        const cachedData = getCachedData();
+        if (cachedData) {
+          setMarketData(cachedData);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch new data if cache is expired or doesn't exist
         const niftyResponse = await axios.get(
           `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=NIFTY&interval=5min&apikey=${API_KEY}`
         );
@@ -34,7 +64,6 @@ const MarketDashboard = () => {
         const niftyValue = parseFloat(niftyLatest['4. close']);
         const niftyChange = ((niftyValue - parseFloat(niftyPrevious['4. close'])) / parseFloat(niftyPrevious['4. close'])) * 100;
 
-        // Fetch SENSEX data
         const sensexResponse = await axios.get(
           `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=SENSEX&interval=5min&apikey=${API_KEY}`
         );
@@ -44,7 +73,6 @@ const MarketDashboard = () => {
         const sensexValue = parseFloat(sensexLatest['4. close']);
         const sensexChange = ((sensexValue - parseFloat(sensexPrevious['4. close'])) / parseFloat(sensexPrevious['4. close'])) * 100;
 
-        // Simulate other data
         const stocksTraded = Math.floor(Math.random() * 5000) + 1000;
         const advances = Math.floor(Math.random() * 1000) + 500;
         const declines = Math.floor(Math.random() * 1000) + 500;
@@ -57,7 +85,7 @@ const MarketDashboard = () => {
           { type: 'Micro Cap', value: Math.floor(Math.random() * 30), color: 'blue' },
         ];
 
-        setMarketData({
+        const newMarketData = {
           nifty: { value: niftyValue, change: niftyChange },
           sensex: { value: sensexValue, change: sensexChange },
           stocksTraded,
@@ -65,16 +93,25 @@ const MarketDashboard = () => {
           advances,
           declines,
           marketBreadth,
-        });
+        };
+
+        setMarketData(newMarketData);
+        setCachedData(newMarketData);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch market data');
+        const cachedData = getCachedData();
+        if (cachedData) {
+          setMarketData(cachedData);
+          setError('Using cached data - Unable to fetch latest market data');
+        } else {
+          setError('Failed to fetch market data');
+        }
         setLoading(false);
       }
     };
 
     fetchMarketData();
-    const interval = setInterval(fetchMarketData, 300000);
+    const interval = setInterval(fetchMarketData, CACHE_DURATION);
     return () => clearInterval(interval);
   }, []);
 
@@ -101,12 +138,10 @@ const MarketDashboard = () => {
   return (
     <div className="w-full bg-black text-white p-6 rounded-lg border border-blue-800 bg-opacity-50 backdrop-blur-md">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Left Section: Overall Market */}
         <div className="flex-1">
           <h2 className="text-xl font-bold mb-6">Overall Market</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* NIFTY */}
             <div className="bg-gray-900 p-4 rounded-lg">
               <p className="text-gray-400 mb-2">NIFTY</p>
               <div className="flex items-center">
@@ -117,7 +152,6 @@ const MarketDashboard = () => {
               </div>
             </div>
             
-            {/* SENSEX */}
             <div className="bg-gray-900 p-4 rounded-lg">
               <p className="text-gray-400 mb-2">SENSEX</p>
               <div className="flex items-center">
@@ -128,7 +162,6 @@ const MarketDashboard = () => {
               </div>
             </div>
             
-            {/* Stock Traded */}
             <div className="bg-gray-900 p-4 rounded-lg flex justify-between items-center">
               <div>
                 <p className="text-gray-400 mb-2">Stock Traded</p>
@@ -141,7 +174,6 @@ const MarketDashboard = () => {
               </div>
             </div>
             
-            {/* Unchanged */}
             <div className="bg-gray-900 p-4 rounded-lg flex justify-between items-center">
               <div>
                 <p className="text-gray-400 mb-2">Unchanged</p>
@@ -154,7 +186,6 @@ const MarketDashboard = () => {
               </div>
             </div>
             
-            {/* Advances */}
             <div className="bg-gray-900 p-4 rounded-lg flex justify-between items-center">
               <div>
                 <p className="text-gray-400 mb-2">Advances</p>
@@ -167,7 +198,6 @@ const MarketDashboard = () => {
               </div>
             </div>
             
-            {/* Declines */}
             <div className="bg-gray-900 p-4 rounded-lg flex justify-between items-center">
               <div>
                 <p className="text-gray-400 mb-2">Declines</p>
@@ -182,7 +212,6 @@ const MarketDashboard = () => {
           </div>
         </div>
         
-        {/* Right Section: Advance Ratio */}
         <div className="w-full md:w-96 flex flex-col">
           <div className="flex items-center mb-4">
             <h2 className="text-xl font-bold">Advance Ratio</h2>
@@ -200,10 +229,8 @@ const MarketDashboard = () => {
                   <div className="bg-gray-900 rounded-lg p-4 flex flex-col items-center">
                     <div className="relative w-32 h-32 mb-2">
                       <svg viewBox="0 0 100 100" className="w-full h-full">
-                        {/* Background circle */}
                         <circle cx="50" cy="50" r="45" fill="none" stroke="#333" strokeWidth="8" />
                         
-                        {/* Foreground circle */}
                         <circle 
                           cx="50" 
                           cy="50" 
@@ -215,7 +242,6 @@ const MarketDashboard = () => {
                           transform="rotate(-90 50 50)"
                         />
                         
-                        {/* Percentage label */}
                         <text 
                           x="50" 
                           y="55" 
@@ -246,7 +272,6 @@ const MarketDashboard = () => {
   );
 };
 
-// Add CSS for hiding scrollbar
 const style = document.createElement('style');
 style.textContent = `
   .scrollbar-hide::-webkit-scrollbar {

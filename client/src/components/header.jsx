@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { ThemeContext } from '../themeContext';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ExpandableSearch from './ExpandableSearch';
 
 const MarketHeader = () => {
   const tickerRef = useRef(null);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const location = useLocation();
+  const navigate = useNavigate()
   
   useEffect(() => {
     // For continuous scrolling effect
@@ -132,7 +133,7 @@ const MarketHeader = () => {
             </Link>
           ))}
           
-          <button className={`flex items-center ${
+          <button onClick={() => navigate('/aichat')} className={`flex items-center ${
             theme === 'dark' 
               ? 'bg-gray-800 hover:bg-gray-700 text-white' 
               : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
@@ -146,7 +147,7 @@ const MarketHeader = () => {
         
         {/* User Section */}
         <div className="flex items-center space-x-4">
-          <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>Pricing</span>
+          <span className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>Analysis</span>
           <button onClick={toggleTheme} className={theme === 'dark' ? 'text-white' : 'text-gray-700'}>
             {theme === 'light' ? <Sun className='h-5 w-5'/> : <Moon className="h-5 w-5" />}
           </button>

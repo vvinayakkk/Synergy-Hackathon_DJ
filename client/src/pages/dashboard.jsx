@@ -13,6 +13,7 @@ import MarketSentimentSurvey from '../components/marketSurvey';
 import MarketDashboard from '../components/market';
 import MarketMovers from '../components/marketMovers';
 import RecentAISessionsComponent from '../components/Askai';
+import UploadPdf from '../components/uploadFile';
 
 const Dashboard = () => {
   // State declarations
@@ -35,28 +36,47 @@ const Dashboard = () => {
     signals: 0
   });
 
-  // Define fetchStockData before using it
+  // Add new state for tracking last fetch time
+  const [lastFetchTime, setLastFetchTime] = useState(null);
+
   const fetchStockData = async () => {
-    const API_KEY = 'O65HMHBW44OCOG75'; // Replace with your API key
+    const TWO_HOURS = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    const now = new Date().getTime();
+
+    // Check if we should fetch new data
+    if (lastFetchTime && (now - lastFetchTime) < TWO_HOURS) {
+      console.log('Using cached data, next fetch in:', Math.round((TWO_HOURS - (now - lastFetchTime)) / 1000 / 60), 'minutes');
+      return;
+    }
+
+    const API_KEY = 'S07OFQBXR1R0R7FB';
     const SYMBOLS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN'];
-    const promises = SYMBOLS.map(symbol =>
-      axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`)
-    );
 
     try {
-      const responses = await Promise.all(promises);
-      const data = responses.map((res, index) => {
-        const symbol = SYMBOLS[index];
-        const timeSeries = res.data['Time Series (Daily)'];
-        return Object.keys(timeSeries).map(date => ({
-          date,
-          [symbol]: parseFloat(timeSeries[date]['4. close'])
-        }));
-      });
+      // Fetch one symbol at a time to avoid rate limits
+      const newData = [];
+      for (const symbol of SYMBOLS) {
+        const response = await axios.get(
+          `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`
+        );
+        
+        if (response.data['Time Series (Daily)']) {
+          const symbolData = Object.keys(response.data['Time Series (Daily)']).map(date => ({
+            date,
+            [symbol]: parseFloat(response.data['Time Series (Daily)'][date]['4. close'])
+          }));
+          newData.push(symbolData);
+        }
 
-      // Combine data by date
+        // Wait 1 minute between API calls to avoid hitting rate limits
+        if (symbol !== SYMBOLS[SYMBOLS.length - 1]) {
+          await new Promise(resolve => setTimeout(resolve, 60000));
+        }
+      }
+
+      // Combine data similar to before
       const combinedData = {};
-      data.forEach(stock => {
+      newData.forEach(stock => {
         stock.forEach(day => {
           if (!combinedData[day.date]) {
             combinedData[day.date] = { date: day.date };
@@ -67,15 +87,39 @@ const Dashboard = () => {
 
       const sortedData = Object.values(combinedData)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-      setStockData(sortedData.slice(-30)); // Last 30 days
+      
+      setStockData(sortedData.slice(-30));
+      setLastFetchTime(now);
+
+      // Store in localStorage for persistence
+      localStorage.setItem('stockData', JSON.stringify(sortedData.slice(-30)));
+      localStorage.setItem('lastFetchTime', now.toString());
+
     } catch (error) {
       console.error('Error fetching stock data:', error);
+      // Use cached data if available
+      const cachedData = localStorage.getItem('stockData');
+      if (cachedData) {
+        setStockData(JSON.parse(cachedData));
+      }
     }
   };
 
   useEffect(() => {
+    // Load cached data first
+    const cachedData = localStorage.getItem('stockData');
+    const cachedTime = localStorage.getItem('lastFetchTime');
+    
+    if (cachedData && cachedTime) {
+      setStockData(JSON.parse(cachedData));
+      setLastFetchTime(parseInt(cachedTime));
+    }
+
+    // Initial fetch
     fetchStockData();
-    const interval = setInterval(fetchStockData, 300000); // Update every 5 minutes
+
+    // Set up interval for every 2 hours
+    const interval = setInterval(fetchStockData, 2 * 60 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -781,6 +825,7 @@ const Dashboard = () => {
         </div>
 
         {/* Market Components */}
+        <UploadPdf />
         <MarketSentimentSurvey />
         <MarketDashboard />
         <MarketMovers />
