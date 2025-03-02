@@ -130,6 +130,16 @@ const NiftyChart = () => {
     }
   };
 
+  const getProcessedData = () => {
+    const chartData = addMicroFluctuations(data[activeTimeframe]);
+    return chartData.map(point => ({
+      time: point.time,
+      value: point.value,
+      trend: point.value > data[activeTimeframe][0].value ? 'up' : 'down',
+      change_percent: ((point.value - data[activeTimeframe][0].value) / data[activeTimeframe][0].value * 100).toFixed(2)
+    }));
+  };
+
   return (
     <div className={`relative p-4 rounded-lg ${
       theme === 'dark' 
@@ -222,8 +232,8 @@ const NiftyChart = () => {
       </div>
 
       <ChartAnalysisButton 
-        chartRef={chartRef}
-        chartName="NIFTY"
+        data={getProcessedData()}
+        chartName={`NIFTY ${activeTimeframe}`}
         theme={theme}
       />
 

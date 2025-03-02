@@ -1,27 +1,47 @@
 import React, { useState } from 'react';
 import { Activity } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import axios from 'axios';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const ChartAnalysisButton = ({ chartRef, chartName, theme }) => {
+const ChartAnalysisButton = ({ data, chartName, theme }) => {
   const [analysis, setAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const analyzeChart = async () => {
     setIsAnalyzing(true);
     try {
-      const chartElement = chartRef.current;
-      const canvas = await html2canvas(chartElement);
-      const imageBase64 = canvas.toDataURL('image/png');
+      // Initialize Gemini AI
+      const GEMINI_API_KEY ='AIzaSyDVR0oKgE3VTibkZNm6cSsmKoDudlqbRwE';
+      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-      const response = await axios.post('http://127.0.0.1:5001/api/analyze-graph', {
-        image: imageBase64,
-        chartName
-      });
+      // Format data for analysis
+      const chartData = data.map(point => 
+        `Time: ${point.time}, Value: ${point.value}${point.change ? `, Change: ${point.change}%` : ''}`
+      ).join('\n');
 
-      setAnalysis(response.data.analysis);
+      const prompt = `
+        Analyze this ${chartName} chart data and provide a concise technical analysis summary.
+        Focus on:
+        1. Overall trend direction
+        2. Key support and resistance levels
+        3. Notable patterns or anomalies
+        4. Trading volume insights (if available)
+        5. Key takeaways
+
+        Data Points:
+        ${chartData}
+
+        Provide a brief, clear analysis in 3-4 sentences.
+      `;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const analysis = response.text();
+
+      setAnalysis(analysis);
     } catch (error) {
       console.error('Error analyzing chart:', error);
+      setAnalysis('Failed to analyze chart. Please try again.');
     } finally {
       setIsAnalyzing(false);
     }

@@ -7,6 +7,17 @@ const FiiDiiChart = ({ data }) => {
   const { theme } = useContext(ThemeContext);
   const chartRef = useRef(null);
 
+  const getProcessedData = () => {
+    return data.map(point => ({
+      time: point.date,
+      value: point.fiiNet + point.diiNet, // Combined net value
+      fiiNet: point.fiiNet,
+      diiNet: point.diiNet,
+      trend: (point.fiiNet + point.diiNet) > 0 ? 'up' : 'down',
+      volume: point.fiiBuy + point.diiBuy // Total buy volume as indicator
+    }));
+  };
+
   // Custom Tooltip
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -91,8 +102,8 @@ const FiiDiiChart = ({ data }) => {
       </ResponsiveContainer>
       
       <ChartAnalysisButton 
-        chartRef={chartRef}
-        chartName="FII-DII"
+        data={getProcessedData()}
+        chartName="FII-DII Activity"
         theme={theme}
       />
     </div>
