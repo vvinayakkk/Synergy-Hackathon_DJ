@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -8,9 +7,24 @@ const Analysis = () => {
   const [combinedData, setCombinedData] = useState([]);
   const [historicalData, setHistoricalData] = useState([]);
   const [forecastData, setForecastData] = useState([]);
-  const [predictionData, setPredictionData] = useState(null);
+  const [predictionData, setPredictionData] = useState({
+    confidence_score: null,
+    individual_predictions: {},
+    lower_bound: null,
+    prediction: null,
+    upper_bound: null,
+  });
   const [newsData, setNewsData] = useState([]);
-  const [recommendationData, setRecommendationData] = useState(null);
+  const [recommendationData, setRecommendationData] = useState({
+    buy: null,
+    confidence: null,
+    error: null,
+    investment_horizon: null,
+    key_insights: [],
+    last_updated: null,
+    risk_level: null,
+    score: null,
+  });
   const [symbol, setSymbol] = useState('TSLA');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,6 +33,7 @@ const Analysis = () => {
   const [showBB, setShowBB] = useState(true);
   const [showIndicators, setShowIndicators] = useState(false);
   const [forecastDays, setForecastDays] = useState(30);
+  const [showPrediction, setShowPrediction] = useState(false); // State to toggle prediction visibility
 
   const transformData = (historicalData, forecastData) => {
     const historical = [];
@@ -99,6 +114,10 @@ const Analysis = () => {
 
   const handleSymbolChange = (e) => {
     setSymbol(e.target.value);
+  };
+
+  const togglePrediction = () => {
+    setShowPrediction(!showPrediction); // Toggle prediction visibility
   };
 
   if (loading) {
@@ -367,56 +386,54 @@ const Analysis = () => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        
-        {/* Prediction Data */}
-        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
-          <h3 className="text-lg font-bold mb-4 text-blue-300">Prediction Data</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={predictionData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis 
-                dataKey="ds" 
-                stroke="#999"
-                tick={{fill: '#999'}}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                }}
-              />
-              <YAxis stroke="#999" tick={{fill: '#999'}} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(10, 15, 30, 0.9)',
-                  borderColor: '#2c3e50',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                  color: '#fff',
-                }}
-                formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
-                labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                }}
-              />
-              <Legend 
-                verticalAlign="top"
-                wrapperStyle={{
-                  paddingBottom: '10px',
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="yhat"
-                stroke="#ffa600"
-                strokeWidth={2}
-                name="Prediction"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+
+        {/* Toggle Button for Prediction */}
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={togglePrediction}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-all duration-300"
+          >
+            {showPrediction ? 'Hide Prediction' : 'Show Prediction'}
+          </button>
         </div>
 
-        {/* News Data */}
+        {/* Prediction Data (Conditional Rendering) */}
+        {showPrediction && (
+          <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
+            <h3 className="text-lg font-bold mb-4 text-blue-300">Prediction Data</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold mb-2">Prediction</h4>
+                <p className="text-sm text-gray-300">${predictionData.prediction?.toFixed(2)}</p>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold mb-2">Confidence Score</h4>
+                <p className="text-sm text-gray-300">{(predictionData.confidence_score * 100).toFixed(2)}%</p>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold mb-2">Lower Bound</h4>
+                <p className="text-sm text-gray-300">${predictionData.lower_bound?.toFixed(2)}</p>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg">
+                <h4 className="text-lg font-semibold mb-2">Upper Bound</h4>
+                <p className="text-sm text-gray-300">${predictionData.upper_bound?.toFixed(2)}</p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold mb-2">Individual Predictions</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(predictionData.individual_predictions).map(([model, value]) => (
+                  <div key={model} className="bg-gray-800 p-4 rounded-lg">
+                    <h5 className="text-md font-semibold mb-2">{model}</h5>
+                    <p className="text-sm text-gray-300">${value?.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* News Section */}
         <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
           <h3 className="text-lg font-bold mb-4 text-blue-300">Latest News</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -435,9 +452,41 @@ const Analysis = () => {
         {/* Recommendation Data */}
         <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg shadow-lg mb-8">
           <h3 className="text-lg font-bold mb-4 text-blue-300">Recommendation</h3>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <p className="text-lg font-semibold">{recommendationData?.recommendation}</p>
-            <p className="text-sm text-gray-300">{recommendationData?.details}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Recommendation</h4>
+              <p className="text-sm text-gray-300">{recommendationData.buy ? 'Buy' : 'Sell'}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Confidence</h4>
+              <p className="text-sm text-gray-300">{recommendationData.confidence}%</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Investment Horizon</h4>
+              <p className="text-sm text-gray-300">{recommendationData.investment_horizon}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Risk Level</h4>
+              <p className="text-sm text-gray-300">{recommendationData.risk_level}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Score</h4>
+              <p className="text-sm text-gray-300">{recommendationData.score}</p>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2">Last Updated</h4>
+              <p className="text-sm text-gray-300">{recommendationData.last_updated}</p>
+            </div>
+          </div>
+          <div className="mt-6">
+            <h4 className="text-lg font-semibold mb-2">Key Insights</h4>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <ul className="list-disc list-inside">
+                {recommendationData.key_insights.map((insight, index) => (
+                  <li key={index} className="text-sm text-gray-300">{insight}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -614,4 +663,3 @@ const Analysis = () => {
 };
 
 export default Analysis;
-
