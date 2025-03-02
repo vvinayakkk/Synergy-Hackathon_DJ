@@ -12,7 +12,7 @@ from langchain.memory import ConversationBufferMemory
 import tempfile
 import os
 from dotenv import load_dotenv
-
+from flask_cors import CORS
 # Load environment variables
 load_dotenv()
 
@@ -21,6 +21,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
 app = Flask(__name__)
+CORS(app)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
@@ -224,6 +225,65 @@ def query_document():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+import base64
+import os
+from flask import request, jsonify
+import google.generativeai as genai
+from PIL import Image
+import io
+
+@app.route('/api/analyze-graph', methods=['POST'])
+def analyze_stock_graph():
+    try:
+        # Check if image was provided
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        image_file = request.files['image']
+        
+        # Read the image
+        image_bytes = image_file.read()
+        image = Image.open(io.BytesIO(image_bytes))
+        
+        # Configure Gemini API
+        genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+        
+        # Set up the model - using Gemini 2.0 Flash
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Prepare the prompt for Gemini
+        prompt = """
+        Analyze this stock market graph image and provide a concise interpretation.
+        Focus on:
+        1. The overall trend (bullish, bearish, or sideways)
+        2. Key support and resistance levels, if visible
+        3. Any notable patterns (head and shoulders, double tops/bottoms, etc.)
+        4. Volume signals if visible
+        5. Any technical indicators shown in the chart
+        6. What this might suggest for short-term trading decisions
+        7.Suggestions
+        
+        Keep your response under 50 words, focused on actionable insights.
+        """
+        
+        # Generate content with the image
+        response = model.generate_content([prompt, image])
+        
+        # Format and return the response
+        analysis = {
+            'analysis': response.text,
+            'status': 'success'
+        }
+        
+        return jsonify(analysis)
+    
+    except Exception as e:
+        return jsonify({
+            'error': str(e), 
+            'status': 'error'
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True,port=5001)
