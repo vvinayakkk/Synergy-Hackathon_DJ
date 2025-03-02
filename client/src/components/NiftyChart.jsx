@@ -2,7 +2,6 @@ import React, { useRef, useState, useContext } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area } from 'recharts';
 import { ThemeContext } from '../themeContext';
 import ChartAnalysisButton from './ChartAnalysisButton';
-import html2canvas from 'html2canvas';
 import axios from 'axios';
 import { Activity } from 'lucide-react';
 
@@ -252,7 +251,6 @@ const NiftyChart = () => {
               isAnimationActive={false}
             />
             <Line 
-              type="linear"
               type="linear"
               dataKey="value" 
               stroke="#F87171" 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import MarketHeader from '../components/header';
-import AnalysisButton from '../components/AnalysisButton';
+import ChartAnalysisButton from '../components/ChartAnalysisButton';
 
 const GlassCard = ({ children, className = '' }) => (
   <div className={`backdrop-blur-md bg-white/10 rounded-xl border border-white/20 shadow-xl ${className}`}>
@@ -267,144 +267,145 @@ const Analysis = () => {
 
         {/* Main Chart - Add button */}
         <GlassCard className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-blue-300">Price Chart</h3>
-            <AnalysisButton 
-              data={combinedData} 
-              graphType="comprehensive price"
+          <div className="relative"> {/* Add this wrapper div */}
+            <h3 className="text-lg font-bold mb-4 text-blue-300">Combined Stock Data and Forecast</h3>
+            <ChartAnalysisButton 
+              data={combinedData}
+              chartName={`${symbol} Combined Analysis`}
+              theme={theme}
             />
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={combinedData}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4dabf7" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#4dabf7" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffa600" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ffa600" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                <XAxis 
+                  dataKey="ds" 
+                  stroke="#999"
+                  tick={{fill: '#999'}}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                  }}
+                />
+                <YAxis stroke="#999" tick={{fill: '#999'}} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(10, 15, 30, 0.9)',
+                    borderColor: '#2c3e50',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+                    color: '#fff',
+                  }}
+                  formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
+                  labelFormatter={(label) => {
+                    const date = new Date(label);
+                    return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                  }}
+                />
+                <Legend 
+                  verticalAlign="top"
+                  wrapperStyle={{
+                    paddingBottom: '10px',
+                  }}
+                />
+                
+                {/* Historical Close Price */}
+                <Line
+                  type="monotone"
+                  dataKey="y"
+                  stroke="#4dabf7"
+                  strokeWidth={3}
+                  name="Close Price"
+                  dot={false}
+                  activeDot={{ r: 6, strokeWidth: 2 }}
+                  connectNulls
+                />
+                
+                {/* Technical Indicators */}
+                {showBB && (
+                  <>
+                    <Line
+                      type="monotone"
+                      dataKey="bb_lower"
+                      stroke="#ba55d3"
+                      strokeWidth={2}
+                      name="BB Lower"
+                      dot={false}
+                      strokeDasharray="5 5"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="bb_upper"
+                      stroke="#ba55d3"
+                      strokeWidth={2}
+                      name="BB Upper"
+                      dot={false}
+                      strokeDasharray="5 5"
+                    />
+                  </>
+                )}
+                
+                {showSMA50 && (
+                  <Line
+                    type="monotone"
+                    dataKey="sma_50"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    name="50 Day SMA"
+                    dot={false}
+                  />
+                )}
+                
+                {showSMA20 && (
+                  <Line
+                    type="monotone"
+                    dataKey="sma_200"
+                    stroke="#eab308"
+                    strokeWidth={2}
+                    name="20 Day SMA"
+                    dot={false}
+                  />
+                )}
+                
+                {/* Forecast */}
+                <Line
+                  type="monotone"
+                  dataKey="yhat"
+                  stroke="#ffa600"
+                  strokeWidth={3}
+                  name="Forecast"
+                  dot={false}
+                />
+                
+                <Line
+                  type="monotone"
+                  dataKey="yhat_lower"
+                  stroke="#ffa600"
+                  strokeDasharray="5 5"
+                  name="Lower Bound"
+                  dot={false}
+                />
+                
+                <Line
+                  type="monotone"
+                  dataKey="yhat_upper"
+                  stroke="#ffa600"
+                  strokeDasharray="5 5"
+                  name="Upper Bound"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={combinedData}>
-              <defs>
-                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4dabf7" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#4dabf7" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ffa600" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#ffa600" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis 
-                dataKey="ds" 
-                stroke="#999"
-                tick={{fill: '#999'}}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                }}
-              />
-              <YAxis stroke="#999" tick={{fill: '#999'}} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(10, 15, 30, 0.9)',
-                  borderColor: '#2c3e50',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                  color: '#fff',
-                }}
-                formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
-                labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                }}
-              />
-              <Legend 
-                verticalAlign="top"
-                wrapperStyle={{
-                  paddingBottom: '10px',
-                }}
-              />
-              
-              {/* Historical Close Price */}
-              <Line
-                type="monotone"
-                dataKey="y"
-                stroke="#4dabf7"
-                strokeWidth={3}
-                name="Close Price"
-                dot={false}
-                activeDot={{ r: 6, strokeWidth: 2 }}
-                connectNulls
-              />
-              
-              {/* Technical Indicators */}
-              {showBB && (
-                <>
-                  <Line
-                    type="monotone"
-                    dataKey="bb_lower"
-                    stroke="#ba55d3"
-                    strokeWidth={2}
-                    name="BB Lower"
-                    dot={false}
-                    strokeDasharray="5 5"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="bb_upper"
-                    stroke="#ba55d3"
-                    strokeWidth={2}
-                    name="BB Upper"
-                    dot={false}
-                    strokeDasharray="5 5"
-                  />
-                </>
-              )}
-              
-              {showSMA50 && (
-                <Line
-                  type="monotone"
-                  dataKey="sma_50"
-                  stroke="#22c55e"
-                  strokeWidth={2}
-                  name="50 Day SMA"
-                  dot={false}
-                />
-              )}
-              
-              {showSMA20 && (
-                <Line
-                  type="monotone"
-                  dataKey="sma_200"
-                  stroke="#eab308"
-                  strokeWidth={2}
-                  name="20 Day SMA"
-                  dot={false}
-                />
-              )}
-              
-              {/* Forecast */}
-              <Line
-                type="monotone"
-                dataKey="yhat"
-                stroke="#ffa600"
-                strokeWidth={3}
-                name="Forecast"
-                dot={false}
-              />
-              
-              <Line
-                type="monotone"
-                dataKey="yhat_lower"
-                stroke="#ffa600"
-                strokeDasharray="5 5"
-                name="Lower Bound"
-                dot={false}
-              />
-              
-              <Line
-                type="monotone"
-                dataKey="yhat_upper"
-                stroke="#ffa600"
-                strokeDasharray="5 5"
-                name="Upper Bound"
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
         </GlassCard>
 
         {/* Toggle Button for Prediction */}
@@ -550,102 +551,103 @@ const Analysis = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {historicalSubsets.map((subset, index) => (
             <GlassCard key={index} className="p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="relative"> {/* Add this wrapper div */}
                 <h3 className="text-lg font-bold text-blue-300">Historical Data {index + 1}</h3>
-                <AnalysisButton 
-                  data={subset} 
-                  graphType={`historical period ${index + 1}`}
+                <ChartAnalysisButton 
+                  data={subset}
+                  chartName={`${symbol} Historical Period ${index + 1}`}
+                  theme={theme}
                 />
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={subset}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis 
+                      dataKey="ds" 
+                      stroke="#999"
+                      tick={{fill: '#999'}}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                      }}
+                    />
+                    <YAxis stroke="#999" tick={{fill: '#999'}} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(10, 15, 30, 0.9)',
+                        borderColor: '#2c3e50',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+                        color: '#fff',
+                      }}
+                      formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
+                      labelFormatter={(label) => {
+                        const date = new Date(label);
+                        return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="top"
+                      wrapperStyle={{
+                        paddingBottom: '10px',
+                      }}
+                    />
+                    
+                    <Line
+                      type="monotone"
+                      dataKey="y"
+                      stroke="#4dabf7"
+                      strokeWidth={2}
+                      name="Close Price"
+                      dot={false}
+                    />
+                    
+                    {showBB && (
+                      <>
+                        <Line
+                          type="monotone"
+                          dataKey="bb_lower"
+                          stroke="#ba55d3"
+                          strokeWidth={2}
+                          name="BB Lower"
+                          dot={false}
+                          strokeDasharray="5 5"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="bb_upper"
+                          stroke="#ba55d3"
+                          strokeWidth={2}
+                          name="BB Upper"
+                          dot={false}
+                          strokeDasharray="5 5"
+                        />
+                      </>
+                    )}
+                    
+                    {showSMA50 && (
+                      <Line
+                        type="monotone"
+                        dataKey="sma_50"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        name="50 Day SMA"
+                        dot={false}
+                      />
+                    )}
+                    
+                    {showSMA20 && (
+                      <Line
+                        type="monotone"
+                        dataKey="sma_200"
+                        stroke="#eab308"
+                        strokeWidth={2}
+                        name="20 Day SMA"
+                        dot={false}
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={subset}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis 
-                    dataKey="ds" 
-                    stroke="#999"
-                    tick={{fill: '#999'}}
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                    }}
-                  />
-                  <YAxis stroke="#999" tick={{fill: '#999'}} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(10, 15, 30, 0.9)',
-                      borderColor: '#2c3e50',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                      color: '#fff',
-                    }}
-                    formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    }}
-                  />
-                  <Legend 
-                    verticalAlign="top"
-                    wrapperStyle={{
-                      paddingBottom: '10px',
-                    }}
-                  />
-                  
-                  <Line
-                    type="monotone"
-                    dataKey="y"
-                    stroke="#4dabf7"
-                    strokeWidth={2}
-                    name="Close Price"
-                    dot={false}
-                  />
-                  
-                  {showBB && (
-                    <>
-                      <Line
-                        type="monotone"
-                        dataKey="bb_lower"
-                        stroke="#ba55d3"
-                        strokeWidth={2}
-                        name="BB Lower"
-                        dot={false}
-                        strokeDasharray="5 5"
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="bb_upper"
-                        stroke="#ba55d3"
-                        strokeWidth={2}
-                        name="BB Upper"
-                        dot={false}
-                        strokeDasharray="5 5"
-                      />
-                    </>
-                  )}
-                  
-                  {showSMA50 && (
-                    <Line
-                      type="monotone"
-                      dataKey="sma_50"
-                      stroke="#22c55e"
-                      strokeWidth={2}
-                      name="50 Day SMA"
-                      dot={false}
-                    />
-                  )}
-                  
-                  {showSMA20 && (
-                    <Line
-                      type="monotone"
-                      dataKey="sma_200"
-                      stroke="#eab308"
-                      strokeWidth={2}
-                      name="20 Day SMA"
-                      dot={false}
-                    />
-                  )}
-                </LineChart>
-              </ResponsiveContainer>
             </GlassCard>
           ))}
         </div>
@@ -654,75 +656,76 @@ const Analysis = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {forecastSubsets.map((subset, index) => (
             <GlassCard key={index} className="p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="relative"> {/* Add this wrapper div */}
                 <h3 className="text-lg font-bold text-blue-300">Forecast Data {index + 1}</h3>
-                <AnalysisButton 
-                  data={subset} 
-                  graphType={`forecast period ${index + 1}`}
+                <ChartAnalysisButton 
+                  data={subset}
+                  chartName={`${symbol} Forecast Period ${index + 1}`}
+                  theme={theme}
                 />
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={subset}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis 
+                      dataKey="ds" 
+                      stroke="#999"
+                      tick={{fill: '#999'}}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                      }}
+                    />
+                    <YAxis stroke="#999" tick={{fill: '#999'}} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(10, 15, 30, 0.9)',
+                        borderColor: '#2c3e50',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+                        color: '#fff',
+                      }}
+                      formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
+                      labelFormatter={(label) => {
+                        const date = new Date(label);
+                        return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="top"
+                      wrapperStyle={{
+                        paddingBottom: '10px',
+                      }}
+                    />
+                    
+                    <Line
+                      type="monotone"
+                      dataKey="yhat"
+                      stroke="#ffa600"
+                      strokeWidth={2}
+                      name="Forecast"
+                      dot={false}
+                    />
+                    
+                    <Line
+                      type="monotone"
+                      dataKey="yhat_lower"
+                      stroke="#ffa600"
+                      strokeDasharray="5 5"
+                      name="Lower Bound"
+                      dot={false}
+                    />
+                    
+                    <Line
+                      type="monotone"
+                      dataKey="yhat_upper"
+                      stroke="#ffa600"
+                      strokeDasharray="5 5"
+                      name="Upper Bound"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={subset}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis 
-                    dataKey="ds" 
-                    stroke="#999"
-                    tick={{fill: '#999'}}
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                    }}
-                  />
-                  <YAxis stroke="#999" tick={{fill: '#999'}} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(10, 15, 30, 0.9)',
-                      borderColor: '#2c3e50',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                      color: '#fff',
-                    }}
-                    formatter={(value) => [value ? `$${value.toFixed(2)}` : 'N/A']}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                    }}
-                  />
-                  <Legend 
-                    verticalAlign="top"
-                    wrapperStyle={{
-                      paddingBottom: '10px',
-                    }}
-                  />
-                  
-                  <Line
-                    type="monotone"
-                    dataKey="yhat"
-                    stroke="#ffa600"
-                    strokeWidth={2}
-                    name="Forecast"
-                    dot={false}
-                  />
-                  
-                  <Line
-                    type="monotone"
-                    dataKey="yhat_lower"
-                    stroke="#ffa600"
-                    strokeDasharray="5 5"
-                    name="Lower Bound"
-                    dot={false}
-                  />
-                  
-                  <Line
-                    type="monotone"
-                    dataKey="yhat_upper"
-                    stroke="#ffa600"
-                    strokeDasharray="5 5"
-                    name="Upper Bound"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
             </GlassCard>
           ))}
         </div>
