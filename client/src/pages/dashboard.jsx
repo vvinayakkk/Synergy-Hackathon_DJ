@@ -41,6 +41,8 @@ const Dashboard = () => {
     const [showBB, setShowBB] = useState(true);
     const [showIndicators, setShowIndicators] = useState(false);
     const [showPrediction, setShowPrediction] = useState(false); // State to toggle prediction visibility
+  const [topGainers, setTopGainers] = useState([]);
+  const [topLosers, setTopLosers] = useState([]);
 
   // Add new state for tracking last fetch time
   const [lastFetchTime, setLastFetchTime] = useState(null);
@@ -207,6 +209,16 @@ const Dashboard = () => {
     }
   };
 
+  const fetchMarketData = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:6001/api/stock-market-data');
+      setTopGainers(response.data.top_gainers || []);
+      setTopLosers(response.data.top_losers || []);
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+    }
+  };
+
   useEffect(() => {
     // Load cached data first
     const cachedData = localStorage.getItem('stockData');
@@ -223,6 +235,13 @@ const Dashboard = () => {
     // Set up interval for every 2 hours
     const interval = setInterval(fetchStockData, 2 * 60 * 60 * 1000);
 
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetchMarketData();
+    // Set up interval to fetch every 5 minutes
+    const interval = setInterval(fetchMarketData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 

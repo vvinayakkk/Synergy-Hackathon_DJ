@@ -68,6 +68,21 @@ const ExpandableSearch = ({ theme }) => {
     setIsExpanded(false);
     setSearchQuery('');
   };
+
+  // Add this function to generate avatar colors
+  const getAvatarStyles = (companyName) => {
+    const colorSchemes = [
+      { bg: 'bg-blue-100', text: 'text-blue-700' },
+      { bg: 'bg-purple-100', text: 'text-purple-700' },
+      { bg: 'bg-green-100', text: 'text-green-700' },
+      { bg: 'bg-red-100', text: 'text-red-700' },
+      { bg: 'bg-yellow-100', text: 'text-yellow-700' },
+      { bg: 'bg-pink-100', text: 'text-pink-700' },
+      { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+    ];
+    const index = companyName.charCodeAt(0) % colorSchemes.length;
+    return colorSchemes[index];
+  };
   
   return (
     <div ref={searchRef} className="relative flex items-center">
@@ -105,10 +120,14 @@ const ExpandableSearch = ({ theme }) => {
                   : 'hover:bg-gray-100 border-b border-gray-200'
               }`}
             >
-              <div className="w-8 h-8 flex-shrink-0 mr-3 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
-                <img src={company.logo} alt={company.name} className="w-8 h-8" />
+              {/* Letter Avatar */}
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold ${
+                getAvatarStyles(company.name).bg
+              } ${getAvatarStyles(company.name).text}`}>
+                {company.name[0]}
               </div>
-              <div className="flex flex-col">
+              
+              <div className="flex flex-col ml-3">
                 <span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                   {company.shortName}
                 </span>
