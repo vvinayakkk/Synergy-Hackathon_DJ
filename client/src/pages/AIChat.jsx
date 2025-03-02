@@ -6,6 +6,7 @@ const AIChatInterface = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false); // Add this line
 
   // Sample popular questions from the image
   const popularQuestions = [
@@ -31,7 +32,7 @@ const AIChatInterface = () => {
       setInputValue('');
 
       // Send request to backend
-      const response = await axios.post('http://127.0.0.1:5000/analyze', {
+      const response = await axios.post('http://127.0.0.1:500/analyze', {
         message: userMessage.content
       });
 
