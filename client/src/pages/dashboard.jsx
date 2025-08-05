@@ -388,7 +388,14 @@ const Dashboard = () => {
       }
     },
 
-    
+    technicalIndicators: async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/technical_indicators?symbol=${symbol}`);
+        setTechnicalIndicators(response.data);
+      } catch (error) {
+        console.error('Error fetching technical indicators:', error);
+      }
+    },
 
     modelPredictions: async () => {
       try {
@@ -450,77 +457,6 @@ const Dashboard = () => {
     sentiment: "Real-time sentiment analysis from social media, news, and market indicators.",
     signals: "AI-generated trading signals based on multiple technical and fundamental factors."
   };
-
-
-const MarketMoversSection = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-    {/* Top Gainers */}
-    <div className={`p-6 rounded-xl ${
-      theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    } border`}>
-      <h3 className="text-xl font-semibold mb-4 flex items-center">
-        <span className="text-green-500 mr-2">▲</span>
-        Top Gainers
-      </h3>
-      <div className="space-y-4">
-        {topGainers.slice(0, 5).map((stock, index) => (
-          <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-            theme === 'dark' ? 'bg-gray-750' : 'bg-gray-50'
-          }`}>
-            <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
-                `bg-${['blue', 'purple', 'green', 'yellow', 'pink'][index % 5]}-100 
-                 text-${['blue', 'purple', 'green', 'yellow', 'pink'][index % 5]}-700`
-              }`}>
-                {stock.Ticker[0]}
-              </div>
-              <div className="ml-3">
-                <div className="font-medium">{stock.Ticker}</div>
-                <div className="text-sm text-gray-500">NSE</div>
-              </div>
-            </div>
-            <div className="text-green-500 font-semibold">
-              +{parseFloat(stock['Change (%)']).toFixed(2)}%
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Top Losers */}
-    <div className={`p-6 rounded-xl ${
-      theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    } border`}>
-      <h3 className="text-xl font-semibold mb-4 flex items-center">
-        <span className="text-red-500 mr-2">▼</span>
-        Top Losers
-      </h3>
-      <div className="space-y-4">
-        {topLosers.slice(0, 5).map((stock, index) => (
-          <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-            theme === 'dark' ? 'bg-gray-750' : 'bg-gray-50'
-          }`}>
-            <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${
-                `bg-${['red', 'orange', 'rose', 'amber', 'pink'][index % 5]}-100 
-                 text-${['red', 'orange', 'rose', 'amber', 'pink'][index % 5]}-700`
-              }`}>
-                {stock.Ticker[0]}
-              </div>
-              <div className="ml-3">
-                <div className="font-medium">{stock.Ticker}</div>
-                <div className="text-sm text-gray-500">NSE</div>
-              </div>
-            </div>
-            <div className="text-red-500 font-semibold">
-              {parseFloat(stock['Change (%)']).toFixed(2)}%
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 
   return (
@@ -877,7 +813,7 @@ const MarketMoversSection = () => (
             backdrop-blur-md p-6 rounded-xl border`}>
             <div className="relative">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium">Market Performance</h3>
+                <h3 className="text-lg font-medium mb-2">Market Performance</h3>
                  <ChartAnalysisButton 
                   data={filterStockData(timeRange)}
                   chartName="Market Performance Overview"
@@ -958,7 +894,7 @@ const MarketMoversSection = () => (
         <UploadPdf />
         <MarketSentimentSurvey />
         {/* <MarketDashboard /> */}
-        <MarketMoversSection />
+        <MarketMovers />
         <RecentAISessionsComponent />
       </main>
 
