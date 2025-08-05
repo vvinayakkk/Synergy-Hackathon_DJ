@@ -1,5 +1,7 @@
 # 🚀 Init.io - Advanced Stock Analysis & AI-Powered Investment Platform
 
+<img width="1000" height="1000" alt="image" src="https://github.com/user-attachments/assets/42e7842b-1278-475e-a8d1-17d2a96e9d7d" />
+
 ## 📋 Project Description
 
 Init.io is a comprehensive stock analysis and investment platform that combines real-time market data, AI-powered predictions, technical analysis, and intelligent portfolio management. The platform provides users with advanced tools for stock screening, market analysis, AI-driven insights, and automated trading recommendations.
