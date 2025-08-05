@@ -1,6 +1,7 @@
-# 🚀 Init.io - Advanced Stock Analysis & AI-Powered Investment Platform
+# Advanced Stock Analysis & AI-Powered Investment Platform
 
-<img width="1000" height="1000" alt="image" src="https://github.com/user-attachments/assets/42e7842b-1278-475e-a8d1-17d2a96e9d7d" />
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/f5b930fd-3d26-4063-81c9-25fa4a59bde0" />
+
 
 ## 📋 Project Description
 
